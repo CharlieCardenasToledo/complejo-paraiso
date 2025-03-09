@@ -1,0 +1,257 @@
+<div class="container mx-auto px-4 py-6 max-w-lg lg:max-w-4xl">
+  <!-- Botón Ver Pedidos en la parte superior -->
+  <div class="flex justify-end mb-4">
+    <button
+      (click)="goToHome()"
+      class="bg-blue-500 text-white rounded-lg py-2 px-4 shadow-md hover:bg-blue-600 flex items-center gap-2"
+    >
+      Ver Pedidos
+    </button>
+  </div>
+
+  <h1 class="text-2xl lg:text-4xl font-bold text-center mb-6 text-gray-800">
+    🛒 Realizar Pedido
+  </h1>
+
+  <!-- Barra de Pasos -->
+  <div class="flex justify-between items-center mb-8">
+    <div class="flex flex-col items-center">
+      <div
+        class="w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center rounded-full border-2"
+        [class.bg-blue-500]="step === 1"
+        [class.border-blue-500]="step === 1"
+        [class.border-gray-300]="step !== 1"
+      >
+        <span
+          class="text-white text-sm lg:text-base"
+          [class.text-gray-600]="step !== 1"
+        >1</span>
+      </div>
+      <p
+        class="text-xs lg:text-sm mt-2 text-gray-600"
+        [class.text-blue-500]="step === 1"
+      >
+        Datos
+      </p>
+    </div>
+    <div class="flex flex-col items-center">
+      <div
+        class="w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center rounded-full border-2"
+        [class.bg-blue-500]="step === 2"
+        [class.border-blue-500]="step === 2"
+        [class.border-gray-300]="step !== 2"
+      >
+        <span
+          class="text-white text-sm lg:text-base"
+          [class.text-gray-600]="step !== 2"
+        >2</span>
+      </div>
+      <p
+        class="text-xs lg:text-sm mt-2 text-gray-600"
+        [class.text-blue-500]="step === 2"
+      >
+        Platos
+      </p>
+    </div>
+    <div class="flex flex-col items-center">
+      <div
+        class="w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center rounded-full border-2"
+        [class.bg-blue-500]="step === 3"
+        [class.border-blue-500]="step === 3"
+        [class.border-gray-300]="step !== 3"
+      >
+        <span
+          class="text-white text-sm lg:text-base"
+          [class.text-gray-600]="step !== 3"
+        >3</span>
+      </div>
+      <p
+        class="text-xs lg:text-sm mt-2 text-gray-600"
+        [class.text-blue-500]="step === 3"
+      >
+        Resumen
+      </p>
+    </div>
+  </div>
+
+  <!-- Paso 1: Datos del Cliente -->
+  @if (step === 1) {
+  <div class="bg-white p-4 lg:p-6 rounded-lg shadow-md">
+    <h2 class="text-lg lg:text-xl font-semibold text-gray-700 mb-4">
+      Datos del Cliente
+    </h2>
+
+    <input
+      type="text"
+      placeholder="Número de Cédula"
+      [(ngModel)]="customer.idNumber"
+      (input)="validateCustomer()"
+      pattern="^[0-9]*$"
+      minlength="10"
+      maxlength="10"
+      type="number"
+      class="w-full p-2 lg:p-3 mb-4 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+    <input
+      type="text"
+      placeholder="Nombre"
+      [(ngModel)]="customer.name"
+      class="w-full p-2 lg:p-3 mb-4 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+
+    <h3 class="text-lg font-semibold text-gray-700 mb-2">
+      Selecciona las mesas:
+    </h3>
+    <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
+      @for (i of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track i) {
+      <div
+        class="border p-4 rounded-lg cursor-pointer text-center"
+        [class.bg-blue-500]="selectedTables.includes(i)"
+        [class.text-white]="selectedTables.includes(i)"
+        [class.text-gray-800]="!selectedTables.includes(i)"
+        (click)="toggleTableSelection(i)"
+      >
+        Mesa {{ i }}
+      </div>
+      }
+    </div>
+
+    <button
+      (click)="nextStep()"
+      class="w-full bg-blue-500 text-white py-2 lg:py-3 rounded shadow hover:bg-blue-600 mt-6"
+    >
+      Siguiente
+    </button>
+  </div>
+  }
+
+  <!-- Paso 2: Selección de Platos -->
+  @if (step === 2) {
+  <!-- Barra de búsqueda -->
+  <div class="mb-4">
+    <input
+      type="text"
+      placeholder="Buscar productos..."
+      [(ngModel)]="searchQuery"
+      (input)="filterMenu()"
+      class="w-full p-2 lg:p-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+  </div>
+  <div class="relative">
+    <!-- Contenido principal -->
+    <div class="content grid grid-cols-1 lg:grid-cols-2 gap-4 px-4 py-6">
+      @for (category of filteredCategories; track category.category) {
+      <div>
+        <h2 class="text-lg font-semibold text-gray-800">
+          {{ category.category }}
+        </h2>
+        <div class="grid grid-cols-1 gap-4 mt-2">
+          @for (item of category.items; track item.id) {
+          <div class="bg-white p-4 rounded-lg shadow-md">
+            <div>
+              <h3 class="font-semibold text-gray-800">{{ item.name }}</h3>
+              <p class="text-gray-600 text-sm">${{ item.price.toFixed(2) }}</p>
+              @if (item.description) {
+              <p class="text-gray-600 text-sm">{{ item.description }}</p>
+              } @if (item.options?.length) {
+              <div class="mt-2">
+                <label class="text-gray-600 text-sm">Opciones:</label>
+                <select
+                  [(ngModel)]="item.selectedOption"
+                  (change)="
+                    updateSelectedOption(item, item.selectedOption || '')
+                  "
+                  class="mt-1 p-2 border rounded"
+                >
+                  @for (option of item.options; track option) {
+                  <option [value]="option">{{ option }}</option>
+                  }
+                </select>
+              </div>
+              }
+            </div>
+            <div class="flex items-center space-x-2 mt-4">
+              <button
+                (click)="removeFromOrder(item)"
+                class="bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-600"
+              >
+                -
+              </button>
+              <span class="text-gray-800">{{ getItemQuantity(item.id) }}</span>
+              <button
+                (click)="addToOrder(item)"
+                class="bg-green-500 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-green-600"
+              >
+                +
+              </button>
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+      }
+    </div>
+
+    <!-- Botones flotantes -->
+    <div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 flex gap-4">
+      <button
+        (click)="previousStep()"
+        class="bg-gray-400 text-white py-2 px-4 rounded hover:bg-gray-500 transition"
+      >
+        Anterior
+      </button>
+      <button
+        (click)="nextStep()"
+        class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition"
+      >
+        Siguiente
+      </button>
+    </div>
+  </div>
+  }
+
+  <!-- Paso 3: Resumen del Pedido -->
+  @if (step === 3) {
+  <div class="bg-white p-4 lg:p-6 rounded-lg shadow-md">
+    <h2 class="text-lg lg:text-xl font-semibold text-gray-700 mb-4">
+      Resumen del Pedido
+    </h2>
+    <p class="text-gray-800 font-semibold mb-2">Nombre: {{ customer.name }}</p>
+    <p class="text-gray-800 font-semibold mb-2">
+      Número de Cédula: {{ customer.idNumber }}
+    </p>
+    <p class="text-gray-800 font-semibold mb-2">
+      Mesas Seleccionadas: {{ selectedTables.join(", ") }}
+    </p>
+    <div class="mt-4">
+      <h3 class="text-lg font-semibold text-gray-700">Detalles del Pedido:</h3>
+      @for (item of orderItems; track item.id) {
+      <p class="text-gray-800">
+        {{ item.name }} x{{ item.quantity }} - ${{
+        (item.price * item.quantity).toFixed(2)
+        }}
+      </p>
+      @if (item.selectedOption) {
+      <p class="text-gray-600 text-sm">Opción: {{ item.selectedOption }}</p>
+      } }
+    </div>
+    <p class="text-lg font-bold text-gray-800 mt-4">
+      Total: ${{ getTotal().toFixed(2) }}
+    </p>
+    <div class="mt-6 flex justify-between">
+      <button
+        (click)="previousStep()"
+        class="bg-gray-400 text-white py-2 px-4 rounded hover:bg-gray-500"
+      >
+        Anterior
+      </button>
+      <button
+        (click)="confirmOrder()"
+        class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
+      >
+        Confirmar
+      </button>
+    </div>
+  </div>
+  }
+</div>

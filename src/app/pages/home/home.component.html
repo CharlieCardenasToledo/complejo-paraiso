@@ -1,0 +1,283 @@
+<div class="container mx-auto px-4 py-6">
+  <!-- Botones de navegación en la parte superior -->
+  <div class="flex justify-end mb-4">
+    <button
+      (click)="navigateToKitchen()"
+      class="bg-orange-500 text-white rounded-lg py-2 px-4 shadow-md hover:bg-orange-600 flex items-center gap-2 mr-2"
+    >
+      👨‍🍳 Cocina
+    </button>
+    <button
+      (click)="navigateToOrders()"
+      class="bg-blue-500 text-white rounded-lg py-2 px-4 shadow-md hover:bg-blue-600 flex items-center gap-2"
+    >
+      🍽️ Nuevo Pedido
+    </button>
+  </div>
+
+  <h1 class="font-bold text-2xl lg:text-3xl mb-6 text-center text-gray-800">
+    📊 Dashboard de Ventas
+  </h1>
+
+  <!-- Selector de fecha -->
+  <div class="mb-6">
+    <label for="dateSelector" class="block text-sm font-medium text-gray-700 mb-1">Seleccionar Período:</label>
+    <select
+      id="dateSelector"
+      [(ngModel)]="selectedDate"
+      (change)="onDateChange($event)"
+      class="w-full md:w-64 bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      <option value="overall">Todos los períodos</option>
+      <option *ngFor="let date of allDates" [value]="date">{{ date | formatDateSpanish }}</option>
+    </select>
+  </div>
+
+  <!-- Filtro para mostrar solo pedidos con platos listos -->
+  <div class="mb-6 flex items-center">
+    <input
+      type="checkbox"
+      id="readyItemsFilter"
+      [(ngModel)]="showOnlyWithReadyItems"
+      class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500"
+    />
+    <label for="readyItemsFilter" class="text-sm font-medium text-gray-700">
+      Mostrar solo pedidos con platos listos para servir
+    </label>
+  </div>
+
+  <!-- Tarjetas de estadísticas principales -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <!-- Ingresos totales -->
+    <div class="bg-white rounded-lg shadow-md p-5 border-l-4 border-blue-500">
+      <h3 class="text-sm font-medium text-gray-500">Ingresos Totales</h3>
+      <p class="mt-1 text-2xl font-semibold text-gray-900">${{ getSelectedStats().totalRevenue.toFixed(2) }}</p>
+      <div class="mt-2 flex items-center text-sm">
+        <span class="text-gray-500">{{ getSelectedStats().orderCount }} pedidos</span>
+      </div>
+    </div>
+
+    <!-- Ticket promedio -->
+    <div class="bg-white rounded-lg shadow-md p-5 border-l-4 border-green-500">
+      <h3 class="text-sm font-medium text-gray-500">Ticket Promedio</h3>
+      <p class="mt-1 text-2xl font-semibold text-gray-900">${{ getSelectedStats().averageTicket.toFixed(2) }}</p>
+      <div class="mt-2 flex items-center text-sm">
+        <span class="text-gray-500">{{ getSelectedStats().totalItems }} items totales</span>
+      </div>
+    </div>
+
+    <!-- Estado de pedidos -->
+    <div class="bg-white rounded-lg shadow-md p-5 border-l-4 border-yellow-500">
+      <h3 class="text-sm font-medium text-gray-500">Estado de Pedidos</h3>
+      <div class="mt-2 grid grid-cols-1 gap-2">
+        <div class="flex items-center">
+          <div class="w-full bg-gray-200 rounded-full h-2.5">
+            <div class="bg-yellow-400 h-2.5 rounded-full"
+              [style.width.%]="getStatusPercentage('En espera')"></div>
+          </div>
+          <span class="ml-2 text-sm text-gray-600">{{ getSelectedStats().statusCounts['En espera'] || 0 }} En espera</span>
+        </div>
+        <div class="flex items-center">
+          <div class="w-full bg-gray-200 rounded-full h-2.5">
+            <div class="bg-blue-400 h-2.5 rounded-full"
+              [style.width.%]="getStatusPercentage('En preparación')"></div>
+          </div>
+          <span class="ml-2 text-sm text-gray-600">{{ getSelectedStats().statusCounts['En preparación'] || 0 }} En preparación</span>
+        </div>
+        <div class="flex items-center">
+          <div class="w-full bg-gray-200 rounded-full h-2.5">
+            <div class="bg-green-400 h-2.5 rounded-full"
+              [style.width.%]="getStatusPercentage('Realizado')"></div>
+          </div>
+          <span class="ml-2 text-sm text-gray-600">{{ getSelectedStats().statusCounts['Realizado'] || 0 }} Realizados</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Productos más vendidos -->
+    <div class="bg-white rounded-lg shadow-md p-5 border-l-4 border-purple-500">
+      <h3 class="text-sm font-medium text-gray-500">Producto Más Vendido</h3>
+      <p class="mt-1 text-xl font-semibold text-gray-900" *ngIf="getSelectedStats().topProducts.length > 0">
+        {{ getSelectedStats().topProducts[0].name }}
+      </p>
+      <p class="mt-1 text-xl font-semibold text-gray-900" *ngIf="getSelectedStats().topProducts.length === 0">
+        No hay datos
+      </p>
+      <div class="mt-2 flex items-center text-sm" *ngIf="getSelectedStats().topProducts.length > 0">
+        <span class="text-gray-500">{{ getSelectedStats().topProducts[0].quantity }} unidades vendidas</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sección de Productos Más Vendidos -->
+  <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">Top Productos Más Vendidos</h2>
+
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Producto
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Cantidad
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Ingresos
+            </th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr *ngFor="let product of getSelectedStats().topProducts; let i = index">
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center"
+                  [ngStyle]="{'background-color': getColor(i)}">
+                  <span class="text-white text-xs">{{ i + 1 }}</span>
+                </div>
+                <div class="ml-4">
+                  <div class="text-sm font-medium text-gray-900">{{ product.name }}</div>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">{{ product.quantity }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">${{ product.revenue.toFixed(2) }}</div>
+            </td>
+          </tr>
+          <tr *ngIf="getSelectedStats().topProducts.length === 0">
+            <td colspan="3" class="px-6 py-4 text-center text-sm text-gray-500">
+              No hay datos disponibles
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Lista de Pedidos (Sección original) -->
+  <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">Detalle de Pedidos Recientes</h2>
+
+    <!-- Lista agrupada por fechas -->
+    <div *ngFor="let date of visibleDates">
+      <h3 class="font-semibold text-md mt-6 mb-4 text-gray-700">
+        {{ date | formatDateSpanish }}
+      </h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div
+          *ngFor="let order of getOrdersForDate(date)"
+          class="bg-white shadow-lg rounded-lg p-6 border-l-4"
+          [ngClass]="{
+            'border-yellow-400': order.status === 'En espera',
+            'border-blue-400': order.status === 'En preparación',
+            'border-green-400': order.status === 'Realizado'
+          }"
+        >
+          <div class="flex justify-between items-start flex-wrap">
+            <div>
+              <h2 class="font-bold text-lg break-words text-gray-900">
+                {{ order.customer.name }}
+              </h2>
+              <p class="text-sm text-gray-600 break-words">
+                ID: {{ order.customer.idNumber }}
+              </p>
+              <p class="text-sm text-gray-600" *ngIf="order.tables">
+                Mesas: {{ order.tables.join(', ') }}
+              </p>
+            </div>
+            <p class="text-sm text-gray-500 whitespace-nowrap">
+              {{ order.date | date : "dd/MM/yyyy HH:mm" }}
+            </p>
+          </div>
+
+          <!-- Estado general del pedido -->
+          <div class="mt-2">
+            <span
+              class="px-2 py-1 rounded-full text-xs font-medium"
+              [ngClass]="{
+                'bg-yellow-100 text-yellow-800': order.status === 'En espera',
+                'bg-blue-100 text-blue-800': order.status === 'En preparación',
+                'bg-green-100 text-green-800': order.status === 'Realizado'
+              }"
+            >
+              {{ order.status || 'En espera' }}
+            </span>
+          </div>
+
+          <div class="flex justify-between items-center mt-4">
+            <p class="font-semibold text-gray-700">Total:</p>
+            <p class="text-lg font-bold text-gray-800">
+              ${{ order.total.toFixed(2) }}
+            </p>
+          </div>
+
+          <!-- Lista de artículos con estados individuales -->
+          <div class="mt-4">
+            <p class="font-semibold text-gray-700 mb-2">Artículos:</p>
+            <div class="space-y-2">
+              <div
+                *ngFor="let item of order.items"
+                class="p-2 rounded-md flex justify-between items-center"
+                [ngClass]="getItemStatusClass(item.status || 'En espera')"
+              >
+                <div>
+                  <span class="text-sm text-gray-700">
+                    {{ item.quantity }}x {{ item.name }}
+                    <span *ngIf="item.selectedOption" class="text-gray-500">
+                      ({{ item.selectedOption }})
+                    </span>
+                  </span>
+                  <div class="mt-1">
+                    <span
+                      class="text-xs px-2 py-1 rounded-full"
+                      [ngClass]="{
+                        'bg-yellow-100 text-yellow-800': (item.status || 'En espera') === 'En espera',
+                        'bg-blue-100 text-blue-800': (item.status || 'En espera') === 'En preparación',
+                        'bg-green-100 text-green-800': (item.status || 'En espera') === 'Realizado'
+                      }"
+                    >
+                      {{ item.status || 'En espera' }}
+                    </span>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <p class="text-sm font-medium">${{ (item.quantity * item.price).toFixed(2) }}</p>
+
+                  <!-- Icono para platos listos -->
+                  <span
+                    *ngIf="(item.status || 'En espera') === 'Realizado'"
+                    class="inline-block text-green-600 text-lg"
+                    title="¡Listo para servir!"
+                  >
+                    ✓
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Indicador de platos listos -->
+          <div *ngIf="hasReadyItems(order)" class="mt-4 p-2 bg-green-100 rounded-lg text-center animate-pulse">
+            <p class="text-green-800 font-medium">
+              ¡Hay platos listos para servir! 🔔
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botón para cargar más fechas -->
+    <div class="text-center mt-6" *ngIf="visibleDates.length < allDates.length">
+      <button
+        (click)="loadMoreDates()"
+        class="bg-blue-500 text-white rounded-full px-6 py-2 shadow-lg hover:bg-blue-600 transition-all duration-300"
+      >
+        Cargar más
+      </button>
+    </div>
+  </div>
+</div>

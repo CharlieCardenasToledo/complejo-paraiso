@@ -1,0 +1,168 @@
+<div class="container mx-auto px-4 py-6">
+  <!-- Botón para navegar al home en la parte superior -->
+  <div class="flex justify-end mb-4">
+    <button
+      (click)="navigateToHome()"
+      class="bg-blue-500 text-white rounded-lg py-2 px-4 shadow-md hover:bg-blue-600 flex items-center gap-2"
+    >
+      Ver Listado General
+    </button>
+  </div>
+
+  <h1 class="font-bold text-2xl lg:text-3xl mb-6 text-center text-gray-800">
+    👨‍🍳 Vista de Cocina
+  </h1>
+
+  <!-- Leyenda de estados -->
+  <div class="flex flex-wrap justify-center gap-4 mb-6">
+    <div class="flex items-center gap-2">
+      <span class="inline-block w-4 h-4 rounded-full bg-yellow-400"></span>
+      <span>En espera</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="inline-block w-4 h-4 rounded-full bg-blue-400"></span>
+      <span>En preparación</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="inline-block w-4 h-4 rounded-full bg-green-400"></span>
+      <span>Realizado</span>
+    </div>
+  </div>
+
+  <!-- Lista agrupada por fechas -->
+  <div *ngFor="let date of visibleDates">
+    <h2 class="font-semibold text-lg mt-6 mb-4 text-gray-700">
+      {{ date | formatDateSpanish }}
+    </h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div
+        *ngFor="let order of groupedOrders.get(date)"
+        class="bg-white shadow-lg rounded-lg p-6 border-l-4"
+        [ngClass]="getStatusClass(order.status)"
+      >
+        <div class="flex justify-between items-start mb-3">
+          <div>
+            <h2 class="font-bold text-lg break-words text-gray-900">
+              {{ order.customer.name }}
+            </h2>
+            <p class="text-sm text-gray-600 break-words">
+              ID: {{ order.customer.idNumber }}
+            </p>
+            <p class="text-sm text-gray-600">
+              Mesas: {{ order.tables?.join(', ') || 'No especificada' }}
+            </p>
+          </div>
+          <p class="text-sm text-gray-500 whitespace-nowrap">
+            {{ order.date | date : "dd/MM/yyyy HH:mm" }}
+          </p>
+        </div>
+
+        <!-- Estado actual del pedido -->
+        <div class="mb-4">
+          <span
+            class="px-3 py-1 rounded-full text-sm font-medium"
+            [ngClass]="{
+              'bg-yellow-100 text-yellow-800': order.status === 'En espera',
+              'bg-blue-100 text-blue-800': order.status === 'En preparación',
+              'bg-green-100 text-green-800': order.status === 'Realizado'
+            }"
+          >
+            {{ order.status }}
+          </span>
+        </div>
+
+        <div class="mt-4">
+          <p class="font-semibold text-gray-700 mb-2">Artículos:</p>
+          <div class="space-y-3">
+            <div *ngFor="let item of order.items; let i = index"
+                 class="p-2 rounded-md"
+                 [ngClass]="getItemStatusClass(item.status || 'En espera')">
+              <div class="flex justify-between items-center">
+                <div>
+                  <p class="text-sm font-medium">
+                    {{ item.quantity }}x {{ item.name }}
+                    <span *ngIf="item.selectedOption" class="text-gray-500">
+                      ({{ item.selectedOption }})
+                    </span>
+                  </p>
+
+                  <!-- Estado del ítem -->
+                  <span
+                    class="inline-block px-2 py-0.5 text-xs rounded-full mt-1"
+                    [ngClass]="{
+                      'bg-yellow-200 text-yellow-800': (item.status || 'En espera') === 'En espera',
+                      'bg-blue-200 text-blue-800': (item.status || 'En espera') === 'En preparación',
+                      'bg-green-200 text-green-800': (item.status || 'En espera') === 'Realizado'
+                    }"
+                  >
+                    {{ item.status || 'En espera' }}
+                  </span>
+                </div>
+
+                <!-- Botones de acciones para cada ítem -->
+                <div class="flex gap-1">
+                  <button
+                    *ngIf="(item.status || 'En espera') !== 'En espera'"
+                    (click)="updateItemStatus(order, i, 'En espera')"
+                    class="px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-xs"
+                  >
+                    Espera
+                  </button>
+                  <button
+                    *ngIf="(item.status || 'En espera') !== 'En preparación'"
+                    (click)="updateItemStatus(order, i, 'En preparación')"
+                    class="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs"
+                  >
+                    Preparar
+                  </button>
+                  <button
+                    *ngIf="(item.status || 'En espera') !== 'Realizado'"
+                    (click)="updateItemStatus(order, i, 'Realizado')"
+                    class="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-xs"
+                  >
+                    Listo
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botones de acciones para todo el pedido -->
+        <div class="flex flex-wrap gap-2 mt-4 pt-3 border-t border-gray-200">
+          <button
+            *ngIf="order.status !== 'En espera'"
+            (click)="updateOrderStatus(order, 'En espera')"
+            class="px-3 py-1 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 text-sm"
+          >
+            Todo a Espera
+          </button>
+          <button
+            *ngIf="order.status !== 'En preparación'"
+            (click)="updateOrderStatus(order, 'En preparación')"
+            class="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm"
+          >
+            Todo a Preparación
+          </button>
+          <button
+            *ngIf="order.status !== 'Realizado'"
+            (click)="updateOrderStatus(order, 'Realizado')"
+            class="px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm"
+          >
+            Todo Listo
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botón para cargar más fechas -->
+  <div class="text-center mt-6" *ngIf="visibleDates.length < allDates.length">
+    <button
+      (click)="loadMoreDates()"
+      class="bg-blue-500 text-white rounded-full px-6 py-2 shadow-lg hover:bg-blue-600 transition-all duration-300"
+    >
+      Cargar más
+    </button>
+  </div>
+</div>

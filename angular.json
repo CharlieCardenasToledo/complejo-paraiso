@@ -17,7 +17,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/complejo-paraiso",
+            "outputPath": "public/complejo-paraiso",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
@@ -98,5 +98,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": false
   }
 }
