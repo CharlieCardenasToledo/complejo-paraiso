@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener, inject } from '@angular/core';
+import { Component, OnInit, HostListener, inject, effect } from '@angular/core';
 import { RouterOutlet, Router, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { filter, map, mergeMap } from 'rxjs/operators';
 import { AuthService } from './services/auth.service';
@@ -24,6 +24,15 @@ export class AppComponent implements OnInit {
   private authService = inject(AuthService);
   private titleService = inject(Title);
 
+  constructor() {
+    effect(() => {
+      const user = this.authService.user();
+      if (!user && !this.router.url.includes('/login')) {
+        this.router.navigate(['/login']);
+      }
+    });
+  }
+
   ngOnInit() {
     // Verificamos el tamaño de pantalla inicial
     this.checkScreenSize();
@@ -47,13 +56,6 @@ export class AppComponent implements OnInit {
       // Cerrar sidebar automáticamente al navegar en tablet
       if (this.isTabletView) {
         this.showSidebar = false;
-      }
-    });
-
-    // Verificar autenticación del usuario
-    this.authService.user$.subscribe(user => {
-      if (!user && !this.router.url.includes('/login')) {
-        this.router.navigate(['/login']);
       }
     });
 

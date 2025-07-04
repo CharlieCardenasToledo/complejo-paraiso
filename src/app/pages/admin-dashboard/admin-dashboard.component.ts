@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -14,8 +14,8 @@ export class AdminDashboardComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
 
-  // Observables para controlar acceso
-  isAdmin$ = this.authService.isAdmin$;
+  // Signals para controlar acceso
+  isAdmin = this.authService.isAdmin;
 
   // Menú de administración
   adminMenuItems = [
@@ -56,8 +56,8 @@ export class AdminDashboardComponent {
 
   constructor() {
     // Verificar acceso de administrador
-    this.isAdmin$.subscribe(isAdmin => {
-      if (!isAdmin) {
+    effect(() => {
+      if (!this.isAdmin()) {
         this.router.navigate(['/login']);
       }
     });

@@ -16,7 +16,7 @@
     <div class="flex-1 overflow-y-auto py-2">
         <nav class="px-3 space-y-0.5">
             <!-- Dashboard -->
-            @if (canAccessDashboard$ | async) {
+            @if (canAccessDashboard()) {
             <a routerLink="/home" routerLinkActive="bg-teal-50 text-teal-600" [routerLinkActiveOptions]="{exact: true}"
                 (click)="closeSidebar()"
                 class="group flex items-center px-3 py-4 text-base font-medium rounded-md hover:bg-teal-50 hover:text-teal-600 transition-colors">
@@ -30,7 +30,7 @@
             }
 
             <!-- Orders -->
-            @if (canAccessOrders$ | async) {
+            @if (canAccessOrders()) {
             <a routerLink="/pedido" routerLinkActive="bg-teal-50 text-teal-600" (click)="closeSidebar()"
                 class="group flex items-center px-3 py-4 text-base font-medium rounded-md hover:bg-teal-50 hover:text-teal-600 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="mr-3 h-6 w-6 text-gray-500 group-hover:text-teal-500"
@@ -43,7 +43,7 @@
             }
 
             <!-- Kitchen -->
-            @if (canAccessKitchen$ | async) {
+            @if (canAccessKitchen()) {
             <a routerLink="/cocina" routerLinkActive="bg-teal-50 text-teal-600" (click)="closeSidebar()"
                 class="group flex items-center px-3 py-4 text-base font-medium rounded-md hover:bg-teal-50 hover:text-teal-600 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="mr-3 h-6 w-6 text-gray-500 group-hover:text-teal-500"
@@ -56,7 +56,7 @@
             }
 
             <!-- Store -->
-            @if (canAccessPayments$ | async) {
+            @if (canAccessPayments()) {
             <a routerLink="/tienda" routerLinkActive="bg-teal-50 text-teal-600" (click)="closeSidebar()"
                 class="group flex items-center px-3 py-4 text-base font-medium rounded-md hover:bg-teal-50 hover:text-teal-600 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="mr-3 h-6 w-6 text-gray-500 group-hover:text-teal-500"
@@ -69,7 +69,7 @@
             }
 
             <!-- Payments -->
-            @if (canAccessPayments$ | async) {
+            @if (canAccessPayments()) {
             <a routerLink="/cobrar" routerLinkActive="bg-teal-50 text-teal-600" (click)="closeSidebar()"
                 class="group flex items-center px-3 py-4 text-base font-medium rounded-md hover:bg-teal-50 hover:text-teal-600 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="mr-3 h-6 w-6 text-gray-500 group-hover:text-teal-500"
@@ -82,7 +82,7 @@
             }
 
             <!-- Admin Section Heading -->
-            @if (isAdmin$ | async) {
+            @if (isAdmin()) {
             <div class="mt-6 pt-3 border-t border-gray-200">
                 <h3 class="px-3 py-2 text-sm font-semibold text-gray-500 uppercase tracking-wider">
                     Administración
@@ -173,8 +173,7 @@
     </div>
 
     <!-- User Profile Section - Mejorado para tablet con áreas táctiles más grandes -->
-    @let userData = userData$ | async;
-    @if (userData) {
+    @if (userData(); as userData) {
     <div class="border-t border-gray-200 p-5">
         <div class="flex items-center">
             <div class="flex-shrink-0">

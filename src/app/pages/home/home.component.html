@@ -503,7 +503,7 @@
                 </div>
 
                 <!-- Botón para cobrar (solo si todos los ítems están servidos) -->
-                @let hasAccessToFinancials = (isAdmin$ | async) || (isCashier$ | async) || (isWaiter$ | async);
+                @let hasAccessToFinancials = isAdmin() || isCashier() || isWaiter();
                 @let allItemsServed = areAllItemsServed(order);
                 @if (hasAccessToFinancials) {
                 <div class="mt-3">
@@ -581,7 +581,7 @@
                 </div>
 
                 <!-- Hora de cobro y total -->
-                @let hasFinancialAccess = (isAdmin$ | async) || (isCashier$ | async) || (isWaiter$ | async);
+                @let hasFinancialAccess = isAdmin() || isCashier() || isWaiter();
                 <div class="mt-2 space-y-1">
                   @if (order.paidAt) {
                   <div class="flex items-center text-xs text-gray-700">
@@ -681,7 +681,7 @@
             <h3 class="text-sm font-medium text-gray-500 mb-1">Cliente</h3>
             <p class="text-base font-semibold">{{ selectedOrder.customer.name }}</p>
 
-            @if ((isAdmin$ | async) || (isCashier$ | async)) {
+            @if (isAdmin() || isCashier()) {
             <p class="text-sm text-gray-700 mt-2">
               <span class="font-medium">ID:</span> {{ selectedOrder.customer.idNumber }}
             </p>
@@ -758,7 +758,7 @@
 
                 <!-- Precio y estado -->
                 <div class="text-right flex flex-col items-end">
-                  @let hasMoneyAccess = (isAdmin$ | async) || (isCashier$ | async) || (isWaiter$ | async);
+                  @let hasMoneyAccess = isAdmin() || isCashier() || isWaiter();
                   @if (hasMoneyAccess) {
                   <span class="text-sm font-medium">${{ (calculateItemPrice(item) * item.quantity).toFixed(2)
                     }}</span>
@@ -775,7 +775,7 @@
               </div>
 
               <!-- Botón para categorías especiales - Con mejor visibilidad -->
-              @let hasOrderMgmtAccess = (isAdmin$ | async) || (isWaiter$ | async);
+              @let hasOrderMgmtAccess = isAdmin() || isWaiter();
               @let canMarkAsReady = isSpecialCategory(item) && (item.status || 'En espera') !== 'Listos para servir' &&
               hasOrderMgmtAccess;
               @if (canMarkAsReady) {
@@ -795,7 +795,7 @@
           </div>
 
           <!-- Total y botones de acción -->
-          @let hasMoneyAccess = (isAdmin$ | async) || (isCashier$ | async) || (isWaiter$ | async);
+          @let hasMoneyAccess = isAdmin() || isCashier() || isWaiter();
           @if (hasMoneyAccess) {
           <div class="mt-5 flex justify-between items-center p-4 bg-gray-100 rounded-lg">
             <p class="font-semibold text-gray-700">Total:</p>
@@ -804,9 +804,9 @@
           }
 
           <!-- Acciones optimizadas para touch -->
-          @let hasAdminAccess = (isAdmin$ | async);
-          @let hasWaiterAccess = (isWaiter$ | async);
-          @let hasCashierAccess = (isCashier$ | async);
+          @let hasAdminAccess = isAdmin();
+          @let hasWaiterAccess = isWaiter();
+          @let hasCashierAccess = isCashier();
           @let isPaidOrder = isPaid(selectedOrder);
           @let canCharge = !isPaidOrder && selectedOrder.status === 'Listos para servir';
           @let canAddItems = !isPaidOrder;

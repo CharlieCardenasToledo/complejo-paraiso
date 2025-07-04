@@ -1,4 +1,4 @@
-import { Component, inject, Output, EventEmitter } from '@angular/core';
+import { Component, inject, Output, EventEmitter, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService, UserRole } from '../../services/auth.service';
@@ -15,15 +15,15 @@ export class SidebarComponent {
   // Emitter para controlar la visibilidad en tablet
   @Output() toggleSidebar = new EventEmitter<void>();
 
-  // Observables para controlar la visibilidad de elementos según rol
-  isAdmin$ = this.authService.isAdmin$;
-  canAccessDashboard$ = this.authService.hasRole([UserRole.admin, UserRole.mesero, UserRole.cobrador]);
-  canAccessOrders$ = this.authService.hasRole([UserRole.admin, UserRole.mesero]);
-  canAccessKitchen$ = this.authService.hasRole([UserRole.admin, UserRole.cocinero]);
-  canAccessPayments$ = this.authService.hasRole([UserRole.admin, UserRole.cobrador, UserRole.mesero]);
+  // Signals para controlar la visibilidad de elementos según rol
+  isAdmin = this.authService.isAdmin;
+  canAccessDashboard = computed(() => this.authService.hasRole([UserRole.admin, UserRole.mesero, UserRole.cobrador]));
+  canAccessOrders = computed(() => this.authService.hasRole([UserRole.admin, UserRole.mesero]));
+  canAccessKitchen = computed(() => this.authService.hasRole([UserRole.admin, UserRole.cocinero]));
+  canAccessPayments = computed(() => this.authService.hasRole([UserRole.admin, UserRole.cobrador, UserRole.mesero]));
 
   // Datos del usuario
-  userData$ = this.authService.userData$;
+  userData = this.authService.userData;
 
   // Método para cerrar el sidebar después de una navegación en tablet
   closeSidebar(): void {

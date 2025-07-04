@@ -40,11 +40,11 @@ export class HomeComponent implements OnInit, OnDestroy {
   private cashRegisterService = inject(CashRegisterService);
 
 
-  // Observables to control visibility based on role
-  isAdmin$ = this.authService.isAdmin$;
-  isWaiter$ = this.authService.isWaiter$;
-  isCook$ = this.authService.isCook$;
-  isCashier$ = this.authService.isCashier$;
+  // Signals para controlar la visibilidad basada en el rol
+  isAdmin = this.authService.isAdmin;
+  isWaiter = this.authService.isWaiter;
+  isCook = this.authService.isCook;
+  isCashier = this.authService.isCashier;
 
   // Secciones expandibles
   sectionExpanded = {
@@ -253,8 +253,8 @@ export class HomeComponent implements OnInit, OnDestroy {
    */
   async cancelOrder(order: Order): Promise<void> {
     // Verificar permisos
-    const isAdmin = await this.isAdmin$.pipe(take(1)).toPromise();
-    const isWaiter = await this.isWaiter$.pipe(take(1)).toPromise();
+    const isAdmin = this.isAdmin();
+    const isWaiter = this.isWaiter();
 
     if (!isAdmin && !isWaiter) {
       Swal.fire({

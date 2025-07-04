@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, effect } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import {
@@ -60,8 +60,8 @@ export class DishManagementComponent implements OnInit {
 
   constructor() {
     // Verificar acceso de administrador
-    this.authService.isAdmin$.subscribe(isAdmin => {
-      if (!isAdmin) {
+    effect(() => {
+      if (!this.authService.isAdmin()) {
         this.router.navigate(['/login']);
       }
     });

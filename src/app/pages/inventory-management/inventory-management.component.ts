@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -80,15 +80,15 @@ export class InventoryManagementComponent implements OnInit {
   transactionsLimit: number = 10;
 
   constructor(private balanceService: BalanceService) {
-    // Verificar acceso de administrador
-    this.authService.isAdmin$.subscribe(isAdmin => {
+    // Verificar acceso de administrador y obtener datos del usuario
+    effect(() => {
+      const isAdmin = this.authService.isAdmin();
+      const user = this.authService.userData();
+
       if (!isAdmin) {
         this.router.navigate(['/login']);
       }
-    });
-
-    // Obtener datos del usuario actual
-    this.authService.userData$.subscribe(user => {
+      
       this.currentUser = user;
     });
   }

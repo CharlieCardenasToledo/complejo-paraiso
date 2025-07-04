@@ -1,98 +1,80 @@
-// Actualización de app.routes.ts para incluir el componente de reportes
-
 import { Routes } from '@angular/router';
-import { RedirectComponent } from './components/redirect/redirect.component';
-import { LoginComponent } from './pages/login/login.component';
-import { HomeComponent } from './pages/home/home.component';
-import { KitchenComponent } from './pages/kitchen/kitchen.component';
-import { OrderComponent } from './pages/order/order.component';
-import { PaymentComponent } from './pages/payment/payment.component';
-import { UserManagementComponent } from './pages/user-management/user-management.component';
-import { AdminDashboardComponent } from './pages/admin-dashboard/admin-dashboard.component';
-import { CategoryManagementComponent } from './pages/category-management/category-management.component';
-import { DishManagementComponent } from './pages/dish-management/dish-management.component';
-import { InventoryManagementComponent } from './pages/inventory-management/inventory-management.component';
-import { StoreComponent } from './pages/store/store.component';
-import { ReportsComponent } from './pages/reports/reports.component'; // Importar el nuevo componente
-
-// Importar guards
 import { UserRole } from './services/auth.service';
 import { roleGuard } from './guard/auth.guard';
-import { CashRegisterComponent } from './components/cash-register/cash-register.component';
 
 export const routes: Routes = [
   {
     path: 'login',
-    component: LoginComponent
+    loadComponent: () => import('./pages/login/login.component').then(m => m.LoginComponent)
   },
   {
     path: 'redirect',
-    component: RedirectComponent
+    loadComponent: () => import('./components/redirect/redirect.component').then(m => m.RedirectComponent)
   },
   {
     path: 'home',
-    component: HomeComponent,
+    loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent),
     canActivate: [roleGuard([UserRole.admin, UserRole.mesero, UserRole.cobrador])]
   },
   {
     path: 'cocina',
-    component: KitchenComponent,
+    loadComponent: () => import('./pages/kitchen/kitchen.component').then(m => m.KitchenComponent),
     canActivate: [roleGuard([UserRole.admin, UserRole.cocinero])]
   },
   {
     path: 'pedido',
-    component: OrderComponent,
+    loadComponent: () => import('./pages/order/order.component').then(m => m.OrderComponent),
     canActivate: [roleGuard([UserRole.admin, UserRole.mesero])]
   },
   {
     path: 'cobrar/:id',
-    component: PaymentComponent,
+    loadComponent: () => import('./pages/payment/payment.component').then(m => m.PaymentComponent),
     canActivate: [roleGuard([UserRole.admin, UserRole.cobrador, UserRole.mesero])]
   },
   {
     path: 'cobrar',
-    component: PaymentComponent,
+    loadComponent: () => import('./pages/payment/payment.component').then(m => m.PaymentComponent),
     canActivate: [roleGuard([UserRole.admin, UserRole.cobrador, UserRole.mesero])]
   },
   {
     path: 'tienda',
-    component: StoreComponent,
+    loadComponent: () => import('./pages/store/store.component').then(m => m.StoreComponent),
     canActivate: [roleGuard([UserRole.admin, UserRole.cobrador, UserRole.mesero])]
   },
   {
     path: 'users',
-    component: UserManagementComponent,
+    loadComponent: () => import('./pages/user-management/user-management.component').then(m => m.UserManagementComponent),
     canActivate: [roleGuard([UserRole.admin])]
   },
   // Rutas de administración
   {
     path: 'admin',
-    component: AdminDashboardComponent,
+    loadComponent: () => import('./pages/admin-dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent),
     canActivate: [roleGuard([UserRole.admin])]
   },
   {
     path: 'admin/caja',
-    component: CashRegisterComponent,
+    loadComponent: () => import('./components/cash-register/cash-register.component').then(m => m.CashRegisterComponent),
     canActivate: [roleGuard([UserRole.admin])]
   },
   {
     path: 'admin/categorias',
-    component: CategoryManagementComponent,
+    loadComponent: () => import('./pages/category-management/category-management.component').then(m => m.CategoryManagementComponent),
     canActivate: [roleGuard([UserRole.admin])]
   },
   {
     path: 'admin/productos',
-    component: DishManagementComponent,
+    loadComponent: () => import('./pages/dish-management/dish-management.component').then(m => m.DishManagementComponent),
     canActivate: [roleGuard([UserRole.admin])]
   },
   {
     path: 'admin/inventario',
-    component: InventoryManagementComponent,
+    loadComponent: () => import('./pages/inventory-management/inventory-management.component').then(m => m.InventoryManagementComponent),
     canActivate: [roleGuard([UserRole.admin])]
   },
   {
     path: 'admin/reportes',
-    component: ReportsComponent, // Usar el nuevo componente de reportes
+    loadComponent: () => import('./pages/reports/reports.component').then(m => m.ReportsComponent),
     canActivate: [roleGuard([UserRole.admin])]
   },
   {
