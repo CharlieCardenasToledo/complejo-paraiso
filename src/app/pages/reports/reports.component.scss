@@ -1,0 +1,78 @@
+// src/app/pages/reports/reports.component.scss
+// Estilos adicionales para la página de reportes
+
+// Estilos para los contenedores de gráficas
+canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+// Transiciones suaves para elementos interactivos
+button,
+select,
+input[type="date"] {
+    transition: all 0.2s ease-in-out;
+}
+
+// Animación de carga para la página
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.container {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+// Mejorar la responsividad de las tablas
+.overflow-x-auto {
+    &::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: #ddd;
+        border-radius: 4px;
+
+        &:hover {
+            background: #ccc;
+        }
+    }
+}
+
+// Mejorar la apariencia de las tarjetas KPI
+.bg-white {
+    transition: box-shadow 0.3s ease;
+
+    &:hover {
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    }
+}
+
+// Estilos para la paginación
+.pagination {
+    button {
+        &:disabled {
+            cursor: not-allowed;
+        }
+    }
+}
+
+// Estilo para resaltar filas en la tabla al pasar el cursor
+tbody tr {
+    transition: background-color 0.2s ease;
+
+    &:hover {
+        background-color: rgba(243, 244, 246, 0.5);
+    }
+}

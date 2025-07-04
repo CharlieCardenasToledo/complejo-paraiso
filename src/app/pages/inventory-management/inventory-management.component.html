@@ -1,0 +1,1016 @@
+<div class="container mx-auto px-3 py-4 max-w-7xl">
+  <!-- Action buttons (fixed at bottom on mobile) -->
+  <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t z-10 p-3 flex space-x-2">
+    @if (isEditing) {
+      <button (click)="resetForm()"
+        class="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-700 font-medium shadow-sm">
+        Cancelar
+      </button>
+    }
+    @if (showMovementForm) {
+      <button (click)="showMovementForm = false"
+        class="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-700 font-medium shadow-sm">
+        Cancelar
+      </button>
+    }
+    @if (!isEditing && !showMovementForm) {
+      <button (click)="openMovementForm()"
+        class="flex-1 px-3 py-2 bg-blue-500 text-white rounded-md font-medium shadow-sm">
+        + Movimiento
+      </button>
+    }
+    @if (!isEditing && !showMovementForm && activeTab !== 'newItem') {
+      <button (click)="resetForm()"
+        class="flex-1 px-3 py-2 bg-green-500 text-white rounded-md font-medium shadow-sm">
+        + Artículo
+      </button>
+    }
+    @if (isEditing) {
+      <button (click)="updateItem()"
+        class="flex-1 px-3 py-2 bg-blue-500 text-white rounded-md font-medium shadow-sm">
+        Actualizar
+      </button>
+    }
+    @if (showMovementForm) {
+      <button (click)="handleMovement()"
+        class="flex-1 px-3 py-2 bg-blue-500 text-white rounded-md font-medium shadow-sm">
+        Guardar
+      </button>
+    }
+    @if (activeTab === 'newItem' && !isEditing && !showMovementForm) {
+      <button (click)="createItem()"
+        class="flex-1 px-3 py-2 bg-green-500 text-white rounded-md font-medium shadow-sm">
+        Crear Artículo
+      </button>
+    }
+    <button (click)="activeTab = 'balance'" [class.border-b-2]="activeTab === 'balance'"
+      [class.border-blue-500]="activeTab === 'balance'" [class.text-blue-600]="activeTab === 'balance'"
+      class="flex-1 py-3 px-1 text-center">
+      Saldo
+    </button>
+  </div>
+  <!-- Tabs for mobile navigation -->
+  <div class="md:hidden mb-4 border-b">
+    <div class="flex text-sm font-medium">
+      <button (click)="activeTab = 'inventory'" [class.border-b-2]="activeTab === 'inventory'"
+        [class.border-blue-500]="activeTab === 'inventory'" [class.text-blue-600]="activeTab === 'inventory'"
+        class="flex-1 py-3 px-1 text-center">
+        Inventario
+      </button>
+      <button (click)="activeTab = 'dishes'" [class.border-b-2]="activeTab === 'dishes'"
+        [class.border-blue-500]="activeTab === 'dishes'" [class.text-blue-600]="activeTab === 'dishes'"
+        class="flex-1 py-3 px-1 text-center">
+        Platos
+      </button>
+      <button (click)="activeTab = 'movements'" [class.border-b-2]="activeTab === 'movements'"
+        [class.border-blue-500]="activeTab === 'movements'" [class.text-blue-600]="activeTab === 'movements'"
+        class="flex-1 py-3 px-1 text-center">
+        Movimientos
+      </button>
+    </div>
+  </div>
+
+  <!-- Search bar - always visible -->
+  <div class="sticky top-0 z-10 bg-gray-50 mb-4 rounded-lg shadow-sm p-3">
+    <div class="relative">
+      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+          fill="currentColor">
+          <path fill-rule="evenodd"
+            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+            clip-rule="evenodd" />
+          </svg>
+        </div>
+        <input [(ngModel)]="searchTerm" type="text" placeholder="Buscar artículo..."
+          class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500">
+        </div>
+
+        <!-- Filter buttons - collapsible on mobile -->
+        <div class="mt-3">
+          <button (click)="showFilters = !showFilters"
+            class="flex items-center text-sm text-gray-600 w-full justify-between">
+            <span>Filtros</span>
+            <svg [class.rotate-180]="showFilters" class="w-4 h-4 transition-transform"
+              xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd"
+                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                clip-rule="evenodd" />
+              </svg>
+            </button>
+
+            @if (showFilters) {
+              <div class="mt-2 space-y-2 text-sm bg-white p-3 rounded-md shadow-sm">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+                    <select [(ngModel)]="selectedCategory"
+                      class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
+                      <option value="all">Todas las categorías</option>
+                      @for (category of uniqueCategories; track category) {
+                        <option [value]="category">
+                          {{ category || 'Sin categoría' }}
+                        </option>
+                      }
+                    </select>
+                  </div>
+                  <div class="flex flex-col justify-end">
+                    <div class="space-y-2">
+                      <label class="inline-flex items-center">
+                        <input type="checkbox" [(ngModel)]="showInactive"
+                          class="rounded text-blue-600 focus:ring-blue-500 w-4 h-4">
+                          <span class="ml-2 text-sm text-gray-700">Mostrar inactivos</span>
+                        </label>
+                        <br>
+                          <label class="inline-flex items-center">
+                            <input type="checkbox" [(ngModel)]="showLowStock"
+                              class="rounded text-blue-600 focus:ring-blue-500 w-4 h-4">
+                              <span class="ml-2 text-sm text-gray-700">Solo stock bajo</span>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Indicador de carga -->
+              @if (loading) {
+                <div class="flex justify-center py-8">
+                  <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+                </div>
+              }
+
+              <!-- Mensaje de error -->
+              @if (error) {
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4" role="alert">
+                  <span class="block sm:inline">{{ error }}</span>
+                </div>
+              }
+
+              <!-- Main content area -->
+              <div class="pb-20 md:pb-0">
+                <!-- Formulario principal - Responsive design -->
+                <!-- Formulario principal - Responsive design -->
+                @if ((isEditing || showMovementForm || activeTab === 'newItem') && !(loading || error)) {
+                  <div
+                    class="bg-white rounded-lg shadow p-4 mb-6">
+                    <h2 class="text-lg font-semibold mb-4">
+                      <button (click)="resetForm()" class="mr-2 text-gray-500 md:hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd"
+                            d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z"
+                            clip-rule="evenodd" />
+                          </svg>
+                        </button>
+                        {{ isEditing ? 'Editar Artículo' : (showMovementForm ? 'Registrar Movimiento' : 'Crear Artículo') }}
+                      </h2>
+                      <!-- Movimiento Form -->
+                      @if (showMovementForm) {
+                        <div>
+                          <div class="space-y-4">
+                            <div>
+                              <label class="block text-sm font-medium text-gray-700 mb-1">Artículo *</label>
+                              <select [(ngModel)]="newMovement.itemId"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white">
+                                <option [value]="''" disabled selected>Seleccionar artículo</option>
+                                @for (item of inventoryItems; track item) {
+                                  <option [value]="item.id">
+                                    {{ item.name }} ({{ item.quantity }} {{ item.unit }})
+                                  </option>
+                                }
+                              </select>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Tipo *</label>
+                                <select [(ngModel)]="newMovement.type"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white">
+                                  <option value="entrada">Entrada (Agregar)</option>
+                                  <option value="salida">Salida (Restar)</option>
+                                  <option value="ajuste">Ajuste (Fijar valor)</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Cantidad *</label>
+                                <input [(ngModel)]="newMovement.quantity" type="number" min="0.01" step="0.01"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                </div>
+                              </div>
+                              <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Motivo</label>
+                                <textarea [(ngModel)]="newMovement.reason" rows="2"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                placeholder="Razón del movimiento..."></textarea>
+                              </div>
+                            </div>
+                            <!-- Botones de acción (visibles solo en pantallas más grandes) -->
+                            <div class="hidden md:flex justify-end space-x-3 mt-4">
+                              <button (click)="showMovementForm = false"
+                                class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100">
+                                Cancelar
+                              </button>
+                              <button (click)="handleMovement()"
+                                class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+                                Registrar Movimiento
+                              </button>
+                            </div>
+                          </div>
+                        }
+                        <!-- Item Form -->
+                        @if (!showMovementForm && (isEditing || activeTab === 'newItem')) {
+                          <div>
+                            <div class="space-y-4">
+                              <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del Artículo *</label>
+                                <input [(ngModel)]="currentItem.name" type="text"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                  placeholder="Ej: Carne de res, Tomate, Aceite...">
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                  <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+                                    <input [(ngModel)]="currentItem.category" type="text"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                      placeholder="Ej: Carnes, Verduras, Lácteos...">
+                                    </div>
+                                    <div>
+                                      <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                                      <div class="flex items-center mt-1">
+                                        <label class="inline-flex items-center cursor-pointer">
+                                          <input type="checkbox" [(ngModel)]="currentItem.active" class="sr-only peer">
+                                          <div
+                                            class="relative w-10 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                                          </div>
+                                          <span class="ml-2 text-sm font-medium text-gray-700">{{ currentItem.active ?
+                                          'Activo' : 'Inactivo' }}</span>
+                                        </label>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                      <label class="block text-sm font-medium text-gray-700 mb-1">Cantidad *</label>
+                                      <input [(ngModel)]="currentItem.quantity" type="number" min="0" step="0.01"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                      </div>
+                                      <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Unidad *</label>
+                                        <select [(ngModel)]="currentItem.unit"
+                                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white">
+                                          <option value="unidad">Unidad</option>
+                                          <option value="gramos">Gramos</option>
+                                          <option value="kg">Kilogramos</option>
+                                          <option value="ml">Mililitros</option>
+                                          <option value="litro">Litros</option>
+                                          <option value="porción">Porción</option>
+                                          <option value="libra">Libra</option>
+                                          <option value="quintal">Quintal</option>
+                                          <option value="arroba">Arroba</option>
+                                          <option value="onza">Onza</option>
+                                          <option value="galón">Galón</option>
+                                          <option value="caja">Caja</option>
+                                          <option value="saco">Saco</option>
+                                          <option value="atado">Atado</option>
+                                          <option value="racimo">Racimo</option>
+                                          <option value="funda">Funda</option>
+                                          <option value="bulto">Bulto</option>
+                                          <option value="canasta">Canasta</option>
+                                          <option value="botella">Botella</option>
+                                          <option value="cubeta">Cubeta</option>
+                                          <option value="lata">Lata</option>
+                                          <option value="frasco">Frasco</option>
+                                          <option value="gaveta">Gaveta</option>
+                                          <option value="paquete">Paquete</option>
+                                          <option value="metro">Metro</option>
+                                          <option value="centímetro">Centímetro</option>
+                                          <option value="docena">Docena</option>
+                                          <option value="par">Par</option>
+                                        </select>
+                                      </div>
+                                    </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                      <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Stock Mínimo</label>
+                                        <input [(ngModel)]="currentItem.minStock" type="number" min="0" step="0.01"
+                                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                          <p class="text-xs text-gray-500 mt-1">
+                                            Se alertará cuando el stock esté por debajo de este valor
+                                          </p>
+                                        </div>
+                                        <div>
+                                          <label class="block text-sm font-medium text-gray-700 mb-1">Costo Unitario</label>
+                                          <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                              <span class="text-gray-500">$</span>
+                                            </div>
+                                            <input [(ngModel)]="currentItem.cost" type="number" min="0" step="0.01"
+                                              class="w-full pl-7 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                            </div>
+                                          </div>
+                                        </div>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                          <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Ubicación</label>
+                                            <input [(ngModel)]="currentItem.location" type="text"
+                                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                              placeholder="Ej: Estante A, Refrigerador 2...">
+                                            </div>
+                                            <div>
+                                              <label class="block text-sm font-medium text-gray-700 mb-1">Proveedor</label>
+                                              <input [(ngModel)]="currentItem.supplier" type="text"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                placeholder="Ej: Distribuidor X, Proveedor Y...">
+                                              </div>
+                                            </div>
+                                            <div>
+                                              <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+                                              <textarea [(ngModel)]="currentItem.description" rows="2"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                              placeholder="Descripción detallada del artículo..."></textarea>
+                                            </div>
+                                          </div>
+                                          <!-- Botones de acción (visibles solo en pantallas más grandes) -->
+                                          <!-- Botones de acción (visibles solo en pantallas más grandes) -->
+                                          <div class="hidden md:flex justify-end space-x-3 mt-4">
+                                            @if (isEditing) {
+                                              <button (click)="resetForm()"
+                                                class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100">
+                                                Cancelar
+                                              </button>
+                                            }
+                                            @if (!isEditing || activeTab === 'newItem') {
+                                              <button (click)="createItem()"
+                                                class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">
+                                                Crear Artículo
+                                              </button>
+                                            }
+                                            @if (isEditing) {
+                                              <button (click)="updateItem()"
+                                                class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+                                                Actualizar Artículo
+                                              </button>
+                                            }
+                                          </div>
+                                        </div>
+                                      }
+                                    </div>
+                                  }
+                                  <!-- Balance Tab Content -->
+                                  @if ((!isEditing && !showMovementForm && activeTab === 'balance')) {
+                                    <div>
+                                      <div class="bg-white rounded-lg shadow p-4 mb-6">
+                                        <h2 class="text-lg font-semibold mb-4">Gestión de Saldo</h2>
+                                        @if (loading) {
+                                          <div class="py-4 flex justify-center">
+                                            <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                                          </div>
+                                        }
+                                        @if (!loading) {
+                                          <div class="space-y-6">
+                                            <!-- Resumen de saldo -->
+                                            <div class="bg-gray-50 p-4 rounded-lg">
+                                              <div class="grid grid-cols-2 gap-4">
+                                                <div>
+                                                  <h3 class="text-sm font-medium text-gray-500">Saldo Inicial</h3>
+                                                  <p class="text-2xl font-bold">${{ (balanceInfo?.initialBalance ?? 0).toFixed(2) }}</p>
+                                                </div>
+                                                <div>
+                                                  <h3 class="text-sm font-medium text-gray-500">Saldo Actual</h3>
+                                <p class="text-2xl font-bold" [ngClass]="{
+                            'text-green-600': (balanceInfo && balanceInfo.currentBalance > 0),
+                            'text-red-600': (balanceInfo?.currentBalance ?? 0) < 0,
+                            'text-gray-600': balanceInfo?.currentBalance === 0
+                        }">${{ balanceInfo?.currentBalance?.toFixed(2) ?? '0.00' }}</p>
+                                                </div>
+                                              </div>
+                                              <div class="mt-3 text-xs text-gray-500">
+                                                Última actualización: {{ formatDate(balanceInfo?.lastUpdated) }}
+                                              </div>
+                                            </div>
+                                            <!-- Formulario de actualización de saldo -->
+                                            <div>
+                                              <h3 class="text-md font-medium mb-3">Configurar Saldo</h3>
+                                              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                  <label class="block text-sm font-medium text-gray-700 mb-1">Saldo Inicial</label>
+                                                  <div class="relative">
+                                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                      <span class="text-gray-500">$</span>
+                                                    </div>
+                                                    <input [(ngModel)]="newInitialBalance" type="number" min="0" step="0.01"
+                                                      class="w-full pl-7 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                                    </div>
+                                                  </div>
+                                                  <div class="flex items-end">
+                                                    <button (click)="updateInitialBalance()"
+                                                      class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+                                                      Actualizar Saldo Inicial
+                                                    </button>
+                                                  </div>
+                                                </div>
+                                                <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                  <div>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                                                    <select [(ngModel)]="newBalanceTransaction.type"
+                                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white">
+                                                      <option value="entrada">Entrada (Agregar)</option>
+                                                      <option value="salida">Salida (Restar)</option>
+                                                    </select>
+                                                  </div>
+                                                  <div>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Monto</label>
+                                                    <div class="relative">
+                                                      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                        <span class="text-gray-500">$</span>
+                                                      </div>
+                                                      <input [(ngModel)]="newBalanceTransaction.amount" type="number" min="0.01"
+                                                        step="0.01"
+                                                        class="w-full pl-7 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                                      </div>
+                                                    </div>
+                                                    <div class="flex items-end">
+                                                      <button (click)="addBalanceTransaction()"
+                                                        class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 w-full">
+                                                        Registrar Transacción
+                                                      </button>
+                                                    </div>
+                                                  </div>
+                                                  <div class="mt-2">
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+                                                    <textarea [(ngModel)]="newBalanceTransaction.description" rows="2"
+                                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                    placeholder="Motivo de la transacción..."></textarea>
+                                                  </div>
+                                                </div>
+                                                <!-- Historial de transacciones -->
+                                                <div>
+                                                  <h3 class="text-md font-medium mb-3">Historial de Transacciones</h3>
+                                                  <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+                                                    <table class="min-w-full divide-y divide-gray-300">
+                                                      <thead class="bg-gray-50">
+                                                        <tr>
+                                                          <th scope="col"
+                                                            class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">Fecha
+                                                          </th>
+                                                          <th scope="col"
+                                                            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                                          Descripción</th>
+                                                          <th scope="col"
+                                                          class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Monto</th>
+                                                          <th scope="col"
+                                                            class="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">Saldo
+                                                          </th>
+                                                        </tr>
+                                                      </thead>
+                                                      <tbody class="divide-y divide-gray-200 bg-white">
+                                                        @for (transaction of balanceTransactions; track transaction) {
+                                                          <tr>
+                                                            <td class="whitespace-nowrap py-2 pl-4 pr-3 text-sm text-gray-500">{{
+                                                            formatDate(transaction.createdAt) }}</td>
+                                                            <td class="px-3 py-2 text-sm text-gray-900">
+                                                              {{ transaction.description }}
+                                                              @if (transaction.relatedItemName) {
+                                                                <span
+                                                                  class="text-xs text-gray-500 block">
+                                                                  Artículo: {{ transaction.relatedItemName }}
+                                                                </span>
+                                                              }
+                                                            </td>
+                                        <td class="px-3 py-2 text-sm font-medium" [ngClass]="{
+                                    'text-green-600': transaction.amount > 0,
+                                    'text-red-600': transaction.amount < 0
+                                }">
+                                                              {{ transaction.amount > 0 ? '+' : '' }}${{ transaction.amount.toFixed(2) }}
+                                                            </td>
+                                                            <td class="px-3 py-2 text-sm text-gray-500 text-right">${{
+                                                            transaction.newBalance.toFixed(2) }}</td>
+                                                          </tr>
+                                                        }
+                                                        <!-- Empty state -->
+                                                        @if (balanceTransactions.length === 0) {
+                                                          <tr>
+                                                            <td colspan="4" class="px-3 py-4 text-sm text-center text-gray-500">
+                                                              No hay transacciones registradas
+                                                            </td>
+                                                          </tr>
+                                                        }
+                                                      </tbody>
+                                                    </table>
+                                                  </div>
+                                                  @if (balanceTransactions.length > 10) {
+                                                    <div class="mt-3 text-center">
+                                                      <button (click)="loadMoreTransactions()" class="text-blue-600 text-sm">
+                                                        Cargar más transacciones
+                                                      </button>
+                                                    </div>
+                                                  }
+                                                </div>
+                                              </div>
+                                            }
+                                          </div>
+                                        </div>
+                                      }
+
+                                      <!-- Inventory Tab Content -->
+                                      @if ((!isEditing && !showMovementForm && (activeTab === 'inventory' || !activeTab)) && activeTab !== 'newItem' || (activeTab === undefined && !isEditing && !showMovementForm && activeTab !== 'newItem')) {
+                                        <div
+                                          >
+                                          <!-- Desktop Action Buttons (hidden on mobile) -->
+                                          <div class="hidden md:flex justify-between mb-4">
+                                            <h2 class="text-lg font-semibold">Inventario</h2>
+                                            <div class="flex space-x-2">
+                                              <button (click)="activeTab = 'balance'"
+                                                class="bg-yellow-500 text-white py-2 px-4 rounded hover:bg-yellow-600">
+                                                Saldo: ${{ balanceInfo?.currentBalance?.toFixed(2) ?? '0.00' }}
+                                              </button>
+                                              <button (click)="resetForm()" class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">
+                                                + Artículo
+                                              </button>
+                                              <button (click)="openMovementForm()"
+                                                class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
+                                                + Movimiento
+                                              </button>
+                                            </div>
+                                          </div>
+                                          <!-- Inventory Cards (mobile optimized) -->
+                                          <div class="md:hidden space-y-3">
+                                            @for (item of getFilteredInventory(); track item) {
+                                              <div class="bg-white rounded-lg shadow p-3 border-l-4"
+                                                [class.border-green-500]="item.active && (item.quantity > (item.minStock ?? 0) || !item.minStock)"
+                                                [class.border-yellow-500]="item.active && item.minStock && item.quantity <= item.minStock && item.quantity > 0"
+                                                [class.border-red-500]="item.quantity <= 0" [class.border-gray-300]="!item.active">
+                                                <div class="flex justify-between">
+                                                  <h3 class="font-medium">{{ item.name }}</h3>
+                                                  <span class="px-2 py-1 text-xs rounded-full" [class.bg-green-100]="item.active"
+                                                    [class.text-green-800]="item.active" [class.bg-red-100]="!item.active"
+                                                    [class.text-red-800]="!item.active">
+                                                    {{ item.active ? 'Activo' : 'Inactivo' }}
+                                                  </span>
+                                                </div>
+                                                <div class="flex justify-between mt-2">
+                                                  <div>
+                                                    <div class="text-sm flex items-center">
+                                                      <span class="font-medium">{{ item.quantity }} {{ item.unit
+                                                      }}</span>
+                                                      @if (item.minStock) {
+                                                        <span class="ml-2 px-2 py-0.5 rounded text-xs"
+                                                          [ngClass]="getStockStatusClass(item)">
+                                                          {{ item.quantity <= 0 ? 'Agotado' : item.quantity <=item.minStock ? 'Bajo' : 'OK' }}
+                                                        </span>
+                                                      }
+                                                    </div>
+                                                    @if (item.category) {
+                                                      <div class="text-xs text-gray-500">
+                                                        Categoría: {{ item.category }}
+                                                      </div>
+                                                    }
+                                                  </div>
+                                                  <div class="flex">
+                                                    <button (click)="openMovementForm(item)" class="p-2 text-blue-600">
+                                                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                                        fill="currentColor">
+                                                        <path fill-rule="evenodd"
+                                                          d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                                                          clip-rule="evenodd" />
+                                                        </svg>
+                                                      </button>
+                                                      <button (click)="editItem(item)" class="p-2 text-blue-600">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                                          fill="currentColor">
+                                                          <path
+                                                            d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                                          </svg>
+                                                        </button>
+                                                        <button (click)="toggleItemStatus(item)" class="p-2" [class.text-red-600]="item.active"
+                                                          [class.text-green-600]="!item.active">
+                                                          @if (item.active) {
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+                                                              viewBox="0 0 20 20" fill="currentColor">
+                                                              <path fill-rule="evenodd"
+                                                                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                                                clip-rule="evenodd" />
+                                                              </svg>
+                                                            }
+                                                            @if (!item.active) {
+                                                              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+                                                                viewBox="0 0 20 20" fill="currentColor">
+                                                                <path fill-rule="evenodd"
+                                                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                                                  clip-rule="evenodd" />
+                                                                </svg>
+                                                              }
+                                                            </button>
+                                                          </div>
+                                                        </div>
+                                                        @if (item.description) {
+                                                          <div class="mt-2 text-sm text-gray-600">
+                                                            {{ item.description.length > 100 ? item.description.substring(0, 100) +
+                                                            '...' : item.description
+                                                            }}
+                                                          </div>
+                                                        }
+                                                        @if (item.supplier || item.location) {
+                                                          <div class="mt-2 flex flex-wrap text-xs text-gray-500">
+                                                            @if (item.supplier) {
+                                                              <span class="mr-2">Prov: {{ item.supplier
+                                                              }}</span>
+                                                            }
+                                                            @if (item.location) {
+                                                              <span>Ubic: {{ item.location }}</span>
+                                                            }
+                                                          </div>
+                                                        }
+                                                      </div>
+                                                    }
+                                                    <!-- Empty state -->
+                                                    @if (getFilteredInventory().length === 0) {
+                                                      <div class="bg-white rounded-lg shadow p-6 text-center">
+                                                        <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                          viewBox="0 0 24 24" stroke="currentColor">
+                                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293L10 14.414l-2.414 2.414a1 1 0 01-.707.293H6">
+                                                          </path>
+                                                        </svg>
+                                                        <p class="mt-4 text-gray-600">No hay artículos disponibles con los filtros
+                                                        seleccionados</p>
+                                                        <button (click)="resetForm()"
+                                                          class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+                                                          Crear Nuevo Artículo
+                                                        </button>
+                                                      </div>
+                                                    }
+                                                  </div>
+                                                  <!-- Inventory Table (desktop) -->
+                                                  <div class="hidden md:block bg-white rounded-lg shadow overflow-hidden">
+                                                    <table class="min-w-full divide-y divide-gray-200">
+                                                      <thead class="bg-gray-50">
+                                                        <tr>
+                                                          <th scope="col"
+                                                            class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                            Artículo
+                                                          </th>
+                                                          <th scope="col"
+                                                            class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                            Stock
+                                                          </th>
+                                                          <th scope="col"
+                                                            class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                            Categoría
+                                                          </th>
+                                                          <th scope="col"
+                                                            class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                            Estado
+                                                          </th>
+                                                          <th scope="col"
+                                                            class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                            Acciones
+                                                          </th>
+                                                        </tr>
+                                                      </thead>
+                                                      <tbody class="bg-white divide-y divide-gray-200">
+                                                        @for (item of getFilteredInventory(); track item) {
+                                                          <tr [class.bg-gray-50]="!item.active">
+                                                            <td class="px-4 py-3">
+                                                              <div class="flex items-center">
+                                                                <div>
+                                                                  <div class="font-medium text-gray-900">{{ item.name }}
+                                                                  </div>
+                                                                  @if (item.description) {
+                                                                    <div class="text-sm text-gray-500">
+                                                                      {{ item.description.length > 50 ?
+                                                                      item.description.substring(0, 50) + '...'
+                                                                      : item.description }}
+                                                                    </div>
+                                                                  }
+                                                                  @if (item.supplier) {
+                                                                    <div class="text-xs text-gray-500">
+                                                                      Proveedor: {{ item.supplier }}
+                                                                    </div>
+                                                                  }
+                                                                </div>
+                                                              </div>
+                                                            </td>
+                                                            <td class="px-4 py-3 whitespace-nowrap">
+                                                              <div class="flex items-center">
+                                                                <span class="text-sm font-medium">{{ item.quantity }} {{
+                                                                item.unit }}</span>
+                                                                @if (item.minStock) {
+                                                                  <span class="ml-2 px-2 py-0.5 rounded text-xs"
+                                                                    [ngClass]="getStockStatusClass(item)">
+                                                                    {{ item.quantity <= 0 ? 'Agotado' : item.quantity <=item.minStock ? 'Bajo'
+                                                                  : 'OK' }} </span>
+                                                                }
+                                                              </div>
+                                                              @if (item.cost) {
+                                                                <div class="text-xs text-gray-500">
+                                                                  Costo: ${{ item.cost.toFixed(2) }}/{{ item.unit }}
+                                                                </div>
+                                                              }
+                                                              @if (item.lastRestocked) {
+                                                                <div class="text-xs text-gray-500">
+                                                                  Última reposición: {{ formatDate(item.lastRestocked) }}
+                                                                </div>
+                                                              }
+                                                            </td>
+                                                            <td class="px-4 py-3 whitespace-nowrap">
+                                                              <span class="text-sm text-gray-900">{{ item.category || 'Sin
+                                                              categoría' }}</span>
+                                                              @if (item.location) {
+                                                                <div class="text-xs text-gray-500">
+                                                                  Ubicación: {{ item.location }}
+                                                                </div>
+                                                              }
+                                                            </td>
+                                                            <td class="px-4 py-3 whitespace-nowrap">
+                                                              <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
+                                                                [class.bg-green-100]="item.active" [class.text-green-800]="item.active"
+                                                                [class.bg-red-100]="!item.active" [class.text-red-800]="!item.active">
+                                                                {{ item.active ? 'Activo' : 'Inactivo' }}
+                                                              </span>
+                                                            </td>
+                                                            <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
+                                                              <button (click)="openMovementForm(item)" class="text-blue-600 hover:text-blue-900 mr-3">
+                                                                Mov.
+                                                              </button>
+                                                              <button (click)="editItem(item)" class="text-blue-600 hover:text-blue-900 mr-3">
+                                                                Editar
+                                                              </button>
+                                                              <button (click)="toggleItemStatus(item)" [class.text-red-600]="item.active"
+                                                                [class.hover:text-red-900]="item.active" [class.text-green-600]="!item.active"
+                                                                [class.hover:text-green-900]="!item.active" class="mr-3">
+                                                                {{ item.active ? 'Desactivar' : 'Activar' }}
+                                                              </button>
+                                                              <button (click)="deleteItem(item)" class="text-red-600 hover:text-red-900">
+                                                                Eliminar
+                                                              </button>
+                                                            </td>
+                                                          </tr>
+                                                        }
+                                                        <!-- Mensaje cuando no hay artículos -->
+                                                        @if (getFilteredInventory().length === 0) {
+                                                          <tr>
+                                                            <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                                                              No hay artículos disponibles con los filtros seleccionados
+                                                            </td>
+                                                          </tr>
+                                                        }
+                                                      </tbody>
+                                                    </table>
+                                                  </div>
+                                                </div>
+                                              }
+
+                                              <!-- Dishes Tab Content -->
+                                              @if ((!isEditing && !showMovementForm && activeTab === 'dishes')) {
+                                                <div>
+                                                  <h2 class="text-lg font-semibold mb-4 flex items-center">
+                                                    <span>Platos con Inventario</span>
+                                                    <span class="ml-2 text-sm text-gray-500">({{ trackedDishes.length }})</span>
+                                                  </h2>
+                                                  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                                    @for (dish of trackedDishes; track dish) {
+                                                      <div class="bg-white p-4 rounded-lg shadow">
+                                                        <div class="flex justify-between items-start">
+                                                          <div>
+                                                            <h3 class="font-medium">{{ dish.name }}</h3>
+                                                            <div class="text-sm flex items-center mt-1">
+                                                              <span>Stock: </span>
+                                                              <span class="ml-2 px-2 py-0.5 rounded text-xs" [ngClass]="getDishStockClass(dish)">
+                                                                {{ dish.stockQuantity || 0 }}
+                                                              </span>
+                                                            </div>
+                                                            @if (dish.price) {
+                                                              <div class="text-sm text-gray-500 mt-1">
+                                                                Precio: ${{ dish.price.toFixed(2) }}
+                                                              </div>
+                                                            }
+                                                          </div>
+                                                          <div class="flex">
+                                                            <button (click)="updateDishStock(dish)"
+                                                              class="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600">
+                                                              Actualizar
+                                                            </button>
+                                                          </div>
+                                                        </div>
+                                                        @if (dish.description) {
+                                                          <div class="mt-2 text-sm text-gray-600">
+                                                            {{ dish.description.length > 80 ? dish.description.substring(0, 80) +
+                                                            '...' : dish.description
+                                                            }}
+                                                          </div>
+                                                        }
+                                                      </div>
+                                                    }
+                                                    <!-- Empty state for dishes -->
+                                                    @if (trackedDishes.length === 0) {
+                                                      <div
+                                                        class="bg-white rounded-lg shadow p-6 text-center md:col-span-3">
+                                                        <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                          viewBox="0 0 24 24" stroke="currentColor">
+                                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                          </svg>
+                                                          <p class="mt-4 text-gray-600">No hay platos rastreados como inventario</p>
+                                                          <p class="mt-2 text-sm text-gray-500">
+                                                            Configure platos como unidades de inventario desde la gestión de platos
+                                                          </p>
+                                                        </div>
+                                                      }
+                                                    </div>
+                                                  </div>
+                                                }
+
+                                                <!-- Movements Tab Content -->
+                                                @if ((!isEditing && !showMovementForm && activeTab === 'movements')) {
+                                                  <div>
+                                                    <div class="flex justify-between items-center mb-4">
+                                                      <h2 class="text-lg font-semibold">Movimientos Recientes</h2>
+                                                      <button (click)="openMovementForm()"
+                                                        class="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600">
+                                                        Nuevo Movimiento
+                                                      </button>
+                                                    </div>
+                                                    <div class="space-y-3">
+                                                      @for (movement of getFilteredMovements(); track movement) {
+                                                        <div class="bg-white p-4 rounded-lg shadow border-l-4"
+                                                          [class.border-green-500]="movement.type === 'entrada'"
+                                                          [class.border-red-500]="movement.type === 'salida'"
+                                                          [class.border-blue-500]="movement.type === 'ajuste'">
+                                                          <div class="flex justify-between items-start">
+                                                            <div>
+                                                              <div class="font-medium">{{ movement.itemName }}</div>
+                                                              <div class="text-sm flex items-center">
+                                                                <span>{{ movement.previousQuantity }} → {{ movement.newQuantity
+                                                                }}</span>
+                                                                <span class="ml-1" [class.text-green-600]="movement.quantity > 0"
+                                                                  [class.text-red-600]="movement.quantity < 0">
+                                                                  ({{ movement.quantity > 0 ? '+' : '' }}{{ movement.quantity
+                                                                  }})
+                                                                </span>
+                                                              </div>
+                                                            </div>
+                                                            <span class="px-2 py-1 text-xs rounded-full" [ngClass]="getMovementTypeClass(movement.type)">
+                                                              {{ movement.type }}
+                                                            </span>
+                                                          </div>
+                                                          @if (movement.reason) {
+                                                            <div class="mt-2 text-sm text-gray-600">
+                                                              {{ movement.reason }}
+                                                            </div>
+                                                          }
+                                                          <div class="mt-2 text-xs text-gray-500 flex justify-between">
+                                                            <span>{{ formatDate(movement.createdAt) }}</span>
+                                                            <span>{{ movement.createdBy }}</span>
+                                                          </div>
+                                                        </div>
+                                                      }
+                                                      <!-- Empty state for movements -->
+                                                      @if (movements.length === 0) {
+                                                        <div class="bg-white rounded-lg shadow p-6 text-center">
+                                                          <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                            viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                              d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                            </svg>
+                                                            <p class="mt-4 text-gray-600">No hay movimientos registrados</p>
+                                                            <button (click)="openMovementForm()"
+                                                              class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+                                                              Registrar Movimiento
+                                                            </button>
+                                                          </div>
+                                                        }
+                                                      </div>
+                                                    </div>
+                                                  }
+
+                                                  <!-- Sidebar for desktop (hidden on mobile) -->
+                                                  <div class="hidden lg:grid lg:grid-cols-7 lg:gap-6 mt-6">
+                                                    <!-- Main content - 5 columns -->
+                                                    <div class="lg:col-span-5">
+                                                      <!-- Content already rendered above -->
+                                                    </div>
+
+                                                    <!-- Sidebar - 2 columns -->
+                                                    <div class="lg:col-span-2 space-y-4">
+                                                      <!-- Quick access tracked dishes -->
+                                                      <div class="bg-white rounded-lg shadow-md p-4">
+                                                        <h3 class="font-semibold text-gray-800 mb-3">Platos con Inventario</h3>
+                                                        <div class="space-y-2 max-h-60 overflow-y-auto">
+                                                          @for (dish of trackedDishes.slice(0, 5); track dish) {
+                                                            <div class="p-2 border rounded-lg">
+                                                              <div class="flex justify-between items-center">
+                                                                <div>
+                                                                  <div class="text-sm font-medium">{{ dish.name }}</div>
+                                                                  <div class="text-xs flex items-center">
+                                                                    <span>Stock: </span>
+                                                                    <span class="ml-1 px-1 py-0.5 rounded text-xs"
+                                                                      [ngClass]="getDishStockClass(dish)">
+                                                                      {{ dish.stockQuantity || 0 }}
+                                                                    </span>
+                                                                  </div>
+                                                                </div>
+                                                                <button (click)="updateDishStock(dish)"
+                                                                  class="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600">
+                                                                  Actualizar
+                                                                </button>
+                                                              </div>
+                                                            </div>
+                                                          }
+                                                          @if (trackedDishes.length === 0) {
+                                                            <div class="text-center py-3 text-gray-500 text-sm">
+                                                              No hay platos rastreados
+                                                            </div>
+                                                          }
+
+                                                          @if (trackedDishes.length > 5) {
+                                                            <div class="text-center mt-2">
+                                                              <button (click)="activeTab = 'dishes'" class="text-blue-600 text-sm">
+                                                                Ver todos ({{ trackedDishes.length }})
+                                                              </button>
+                                                            </div>
+                                                          }
+                                                        </div>
+                                                      </div>
+
+                                                      <!-- Recent movements widget -->
+                                                      <div class="bg-white rounded-lg shadow-md p-4">
+                                                        <div class="flex justify-between items-center mb-3">
+                                                          <h3 class="font-semibold text-gray-800">Movimientos Recientes</h3>
+                                                          <button (click)="activeTab = 'movements'" class="text-blue-600 text-sm">
+                                                            Ver todos
+                                                          </button>
+                                                        </div>
+
+                                                        <div class="space-y-2 max-h-80 overflow-y-auto">
+                                                          @for (movement of movements.slice(0, 5); track movement) {
+                                                            <div class="p-2 border rounded-lg">
+                                                              <div class="flex justify-between items-start">
+                                                                <div>
+                                                                  <div class="text-sm font-medium">{{ movement.itemName }}
+                                                                  </div>
+                                                                  <div class="text-xs text-gray-600">
+                                                                    {{ movement.previousQuantity }} → {{
+                                                                    movement.newQuantity }}
+                                                                    <span [class.text-green-600]="movement.quantity > 0"
+                                                                      [class.text-red-600]="movement.quantity < 0">
+                                                                      ({{ movement.quantity > 0 ? '+' : '' }}{{
+                                                                      movement.quantity }})
+                                                                    </span>
+                                                                  </div>
+                                                                </div>
+                                                                <span class="px-1.5 py-0.5 text-xs rounded-full"
+                                                                  [ngClass]="getMovementTypeClass(movement.type)">
+                                                                  {{ movement.type }}
+                                                                </span>
+                                                              </div>
+                                                              <div class="mt-1 text-xs text-gray-500">
+                                                                @if (movement.reason) {
+                                                                  <div>{{ movement.reason }}</div>
+                                                                }
+                                                                <div>{{ formatDate(movement.createdAt) }}</div>
+                                                              </div>
+                                                            </div>
+                                                          }
+
+                                                          @if (movements.length === 0) {
+                                                            <div class="text-center py-3 text-gray-500 text-sm">
+                                                              No hay movimientos recientes
+                                                            </div>
+                                                          }
+                                                        </div>
+                                                      </div>
+
+                                                      <!-- Inventory status summary -->
+                                                      <div class="bg-white rounded-lg shadow-md p-4">
+                                                        <h3 class="font-semibold text-gray-800 mb-3">Resumen de Inventario</h3>
+
+                                                        <div class="space-y-3">
+                                                          <div class="flex justify-between text-sm">
+                                                            <span>Total artículos:</span>
+                                                            <span class="font-medium">{{ inventoryItems.length }}</span>
+                                                          </div>
+
+                                                          <div class="flex justify-between text-sm">
+                                                            <span>Stock bajo:</span>
+                                                            <span class="font-medium text-yellow-600">{{ getLowStockCount()
+                                                            }}</span>
+                                                          </div>
+
+                                                          <div class="flex justify-between text-sm">
+                                                            <span>Agotados:</span>
+                                                            <span class="font-medium text-red-600">{{ getOutOfStockCount()
+                                                            }}</span>
+                                                          </div>
+
+                                                          <div class="flex justify-between text-sm">
+                                                            <span>Inactivos:</span>
+                                                            <span class="font-medium text-gray-600">{{ getInactiveCount()
+                                                            }}</span>
+                                                          </div>
+                                                        </div>
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              </div>

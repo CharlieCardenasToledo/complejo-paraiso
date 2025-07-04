@@ -17,7 +17,7 @@ export class FormatDateSpanishPipe implements PipeTransform {
       if (parts.length === 3) {
         // Asume que el formato es dd/MM/yyyy
         const day = parseInt(parts[0], 10);
-        const month = parseInt(parts[1], 10) - 1; // Meses en JS van de 0 a 11
+        const month = parseInt(parts[1], 10) - 1; 
         const year = parseInt(parts[2], 10);
 
         date = new Date(year, month, day);
@@ -27,8 +27,6 @@ export class FormatDateSpanishPipe implements PipeTransform {
     } else {
       date = new Date(value);
     }
-
-    console.log('Fecha interpretada:', date);
 
     if (isNaN(date.getTime())) {
       return 'Fecha no válida';

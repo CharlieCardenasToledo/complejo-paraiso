@@ -1,0 +1,234 @@
+<!-- src/app/pages/reports/reports.component.html -->
+<div class="container mx-auto px-4 py-6">
+  <h1 class="font-bold text-2xl lg:text-3xl mb-6 text-center text-gray-800">
+    📊 Reportes y Análisis
+  </h1>
+
+  <!-- Filtros -->
+  <div class="bg-white p-4 rounded-lg shadow mb-6">
+    <h2 class="font-semibold text-lg mb-3">Filtros</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <!-- Rango de fechas -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Rango de fechas</label>
+        <div class="flex gap-2">
+          <input type="date" [(ngModel)]="startDate" (change)="loadReportData()"
+            class="w-full px-3 py-2 border border-gray-300 rounded">
+            <input type="date" [(ngModel)]="endDate" (change)="loadReportData()"
+              class="w-full px-3 py-2 border border-gray-300 rounded">
+            </div>
+          </div>
+
+          <!-- Selección de periodo predefinido -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Periodo</label>
+            <select [(ngModel)]="selectedPeriod" (change)="updateDateRange()"
+              class="w-full px-3 py-2 border border-gray-300 rounded">
+              <option value="today">Hoy</option>
+              <option value="yesterday">Ayer</option>
+              <option value="thisWeek">Esta semana</option>
+              <option value="lastWeek">Semana pasada</option>
+              <option value="thisMonth">Este mes</option>
+              <option value="lastMonth">Mes pasado</option>
+              <option value="thisYear">Este año</option>
+              <option value="custom">Personalizado</option>
+            </select>
+          </div>
+
+          <!-- Botón de actualizar -->
+          <div class="flex items-end">
+            <button (click)="loadReportData()" class="w-full py-2 bg-blue-500 hover:bg-blue-600 text-white rounded">
+              Actualizar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Indicadores clave (KPIs) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <!-- Total ventas -->
+        <div class="bg-white p-4 rounded-lg shadow">
+          <h3 class="text-gray-500 text-sm uppercase">Total ventas</h3>
+          <p class="text-2xl font-bold text-gray-800">${{ reportData.totalSales.toFixed(2) }}</p>
+            <p class="text-sm" [ngClass]="{
+          'text-green-500': reportData.salesGrowth > 0,
+          'text-red-500': reportData.salesGrowth < 0,
+          'text-gray-500': reportData.salesGrowth === 0
+        }">
+            @if (reportData.salesGrowth > 0) {
+              <span>↑</span>
+            }
+            @if (reportData.salesGrowth < 0) {
+              <span>↓</span>
+            }
+            {{ Math.abs(reportData.salesGrowth).toFixed(1) }}% vs. periodo anterior
+          </p>
+        </div>
+
+        <!-- Número de pedidos -->
+        <div class="bg-white p-4 rounded-lg shadow">
+          <h3 class="text-gray-500 text-sm uppercase">Pedidos</h3>
+          <p class="text-2xl font-bold text-gray-800">{{ reportData.totalOrders }}</p>
+          <p class="text-gray-500 text-sm">Ticket promedio: ${{ reportData.averageTicket.toFixed(2) }}</p>
+        </div>
+
+        <!-- Platos vendidos -->
+        <div class="bg-white p-4 rounded-lg shadow">
+          <h3 class="text-gray-500 text-sm uppercase">Platos vendidos</h3>
+          <p class="text-2xl font-bold text-gray-800">{{ reportData.totalItems }}</p>
+          <p class="text-gray-500 text-sm">En {{ reportData.uniqueDishes }} platos diferentes</p>
+        </div>
+
+        <!-- Método de pago más popular -->
+        <div class="bg-white p-4 rounded-lg shadow">
+          <h3 class="text-gray-500 text-sm uppercase">Método de pago popular</h3>
+          <p class="text-2xl font-bold text-gray-800">{{ reportData.topPaymentMethod }}</p>
+          <p class="text-gray-500 text-sm">{{ (reportData.topPaymentMethodPercentage * 100).toFixed(1) }}% de las
+          ventas</p>
+        </div>
+      </div>
+
+      <!-- Gráficas (primera fila) -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Ventas por día -->
+        <div class="bg-white p-4 rounded-lg shadow">
+          <h3 class="font-semibold text-lg mb-4">Ventas por día</h3>
+          <div class="h-80">
+            <canvas #salesByDayChart></canvas>
+          </div>
+        </div>
+
+        <!-- Ventas por método de pago -->
+        <div class="bg-white p-4 rounded-lg shadow">
+          <h3 class="font-semibold text-lg mb-4">Ventas por método de pago</h3>
+          <div class="h-80">
+            <canvas #paymentMethodsChart></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráficas (segunda fila) -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Top 10 platos más vendidos -->
+        <div class="bg-white p-4 rounded-lg shadow">
+          <h3 class="font-semibold text-lg mb-4">Top 10 platos más vendidos</h3>
+          <div class="h-80">
+            <canvas #topDishesChart></canvas>
+          </div>
+        </div>
+
+        <!-- Ventas por hora del día -->
+        <div class="bg-white p-4 rounded-lg shadow">
+          <h3 class="font-semibold text-lg mb-4">Ventas por hora del día</h3>
+          <div class="h-80">
+            <canvas #salesByHourChart></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráficas (tercera fila) -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Ventas por categoría -->
+        <div class="bg-white p-4 rounded-lg shadow">
+          <h3 class="font-semibold text-lg mb-4">Ventas por categoría</h3>
+          <div class="h-80">
+            <canvas #categoriesChart></canvas>
+          </div>
+        </div>
+
+        <!-- Análisis de inventario -->
+        <div class="bg-white p-4 rounded-lg shadow">
+          <h3 class="font-semibold text-lg mb-4">Análisis de inventario</h3>
+          <div class="h-80">
+            <canvas #inventoryChart></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla detallada de ventas -->
+      <div class="bg-white p-4 rounded-lg shadow mb-8">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="font-semibold text-lg">Detalle de ventas</h3>
+          <button (click)="exportSalesData()"
+            class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd"
+                d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                clip-rule="evenodd" />
+              </svg>
+              Exportar
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha
+                  </th>
+                  <th scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Pedido #</th>
+                  <th scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Cliente</th>
+                  <th scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items
+                  </th>
+                  <th scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total
+                  </th>
+                  <th scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Método</th>
+                  <th scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Detalles</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                @for (order of reportData.recentOrders; track order) {
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">{{ order.date | date:'dd/MM/yyyy HH:mm' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">{{ order.id.substring(0, 8) }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">{{ order.customerName }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">{{ order.itemCount }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">${{ order.total.toFixed(2) }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">{{ order.paymentMethod }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-500 cursor-pointer"
+                      (click)="viewOrderDetails(order.id)">
+                      Ver detalles
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+
+            @if (reportData.recentOrders.length === 0) {
+              <div class="py-8 text-center text-gray-500">
+                No hay datos disponibles para el período seleccionado
+              </div>
+            }
+
+            <!-- Paginación -->
+            @if (reportData.recentOrders.length > 0) {
+              <div class="flex justify-between mt-4">
+                <p class="text-sm text-gray-500">Mostrando {{ pageSize }} de {{ reportData.totalOrderCount }} pedidos
+                </p>
+                <div class="flex gap-2">
+                  <button [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)"
+                    class="px-3 py-1 bg-gray-200 rounded" [class.opacity-50]="currentPage === 1">
+                    Anterior
+                  </button>
+                  <button [disabled]="currentPage * pageSize >= reportData.totalOrderCount"
+                    (click)="changePage(currentPage + 1)" class="px-3 py-1 bg-gray-200 rounded"
+                    [class.opacity-50]="currentPage * pageSize >= reportData.totalOrderCount">
+                    Siguiente
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>

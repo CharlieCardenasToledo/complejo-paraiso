@@ -1,0 +1,594 @@
+<div class="container mx-auto px-4 py-6">
+  <!-- Formulario -->
+  <div id="dishForm" class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
+    <h2 class="text-xl font-semibold mb-6 pb-2 border-b border-gray-100">
+      {{ isEditing ? 'Editar Producto' : 'Crear Nuevo Producto' }}
+    </h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Nombre del producto *</label>
+        <input [(ngModel)]="currentDish.name" type="text"
+          class="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          placeholder="Ej: Chuleta de Cerdo, Ensalada César...">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Categoría *</label>
+          <select [(ngModel)]="currentDish.categoryId"
+            class="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none">
+            <option [value]="''" disabled selected>Seleccionar categoría</option>
+            @for (category of categories; track category.id) {
+              <option [value]="category.id">
+                {{ category.name }}
+              </option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Precio *</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <span class="text-gray-500">$</span>
+            </div>
+            <input [(ngModel)]="currentDish.price" type="number" min="0" step="0.01"
+              class="w-full pl-8 px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+          </div>
+
+          <div class="flex items-center space-x-8">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+              <div class="flex items-center">
+                <label class="inline-flex items-center cursor-pointer">
+                  <input type="checkbox" [(ngModel)]="currentDish.active" class="sr-only peer">
+                  <div
+                    class="relative w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-300 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500">
+                  </div>
+                  <span class="ml-3 text-sm font-medium text-gray-700">{{ currentDish.active ? 'Activo' :
+                  'Inactivo' }}</span>
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Destacado</label>
+              <div class="flex items-center">
+                <label class="inline-flex items-center cursor-pointer">
+                  <input type="checkbox" [(ngModel)]="currentDish.featured" class="sr-only peer">
+                  <div
+                    class="relative w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-yellow-300 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-400">
+                  </div>
+                  <span class="ml-3 text-sm font-medium text-gray-700">{{ currentDish.featured ? 'Destacado' :
+                  'Normal' }}</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
+            <textarea [(ngModel)]="currentDish.description" rows="3"
+              class="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="Descripción detallada del producto..."></textarea>
+          </div>
+
+          <div class="md:col-span-2 pt-4 border-t border-gray-100">
+            <h3 class="font-medium text-gray-800 mb-4">Control de Inventario</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Rastrear como unidad
+                completa</label>
+                <div class="flex items-center">
+                  <label class="inline-flex items-center cursor-pointer">
+                    <input type="checkbox" [(ngModel)]="currentDish.isTracked" class="sr-only peer">
+                    <div
+                      class="relative w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-green-300 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500">
+                    </div>
+                    <span class="ml-3 text-sm font-medium text-gray-700">{{ currentDish.isTracked ? 'Sí' :
+                    'No' }}</span>
+                  </label>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">
+                  Activa esta opción si el producto se controla como unidades completas (ej: chuletones)
+                </p>
+              </div>
+
+              @if (currentDish.isTracked) {
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Cantidad en Stock *</label>
+                  <input [(ngModel)]="currentDish.stockQuantity" type="number" min="0"
+                    class="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Sección de Opciones -->
+            <div class="md:col-span-2 pt-4 border-t border-gray-100">
+              <h3 class="font-medium text-gray-800 mb-4">Opciones del producto</h3>
+              <p class="text-sm text-gray-500 mb-4">
+                Añade variantes que el cliente puede seleccionar (ej: Término de cocción, Tipo de salsa, etc)
+              </p>
+
+              <!-- Formulario para agregar opción -->
+              <div class="flex flex-wrap md:flex-nowrap gap-3 mb-5">
+                <div class="w-full md:w-1/2">
+                  <input [(ngModel)]="newOption.name" type="text" placeholder="Nombre de la opción"
+                    class="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                  </div>
+                  <div class="w-full md:w-1/4">
+                    <div class="relative">
+                      <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <span class="text-gray-500">$</span>
+                      </div>
+                      <input [(ngModel)]="newOption.price" type="number" min="0" step="0.01"
+                        placeholder="Precio adicional"
+                        class="w-full pl-8 px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                      </div>
+                    </div>
+                    <div class="w-full md:w-1/4">
+                      <button (click)="addOption()"
+                        class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                          stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 4v16m8-8H4" />
+                          </svg>
+                          Añadir Opción
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Lista de opciones -->
+                    @if (currentDish.options && currentDish.options.length > 0) {
+                      <div class="bg-gray-50 p-4 rounded-lg border border-gray-100 mb-3">
+                        <h4 class="font-medium text-gray-700 mb-3">Opciones añadidas:</h4>
+                        <ul class="space-y-2">
+                          @for (option of currentDish.options; track $index) {
+                            <li class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-100">
+                              <span class="font-medium">
+                                {{ option.name }}
+                                @if (option.price && option.price > 0) {
+                                  <span class="ml-2 text-blue-500 text-sm">(+${{ option.price.toFixed(2) }})</span>
+                                }
+                              </span>
+                              <button (click)="removeOption($index)"
+                                class="text-gray-400 hover:text-red-500 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                  fill="currentColor">
+                                  <path fill-rule="evenodd"
+                                    d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                    clip-rule="evenodd" />
+                                  </svg>
+                                </button>
+                              </li>
+                            }
+                          </ul>
+                        </div>
+                      }
+                    </div>
+
+                    <!-- Sección de Ingredientes -->
+                    <div class="md:col-span-2 pt-4 border-t border-gray-100">
+                      <h3 class="font-medium text-gray-800 mb-4">Ingredientes del producto</h3>
+                      <p class="text-sm text-gray-500 mb-4">
+                        Selecciona los ingredientes que se utilizan para este producto (se reducirán del inventario)
+                      </p>
+
+                      <!-- Formulario para agregar ingrediente -->
+                      <div class="flex flex-wrap md:flex-nowrap gap-3 mb-5">
+                        <div class="w-full md:w-2/5">
+                          <select [(ngModel)]="newIngredient.id"
+                            class="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none">
+                            <option [value]="''" disabled selected>Seleccionar ingrediente</option>
+                            @for (ingredient of ingredients; track ingredient.id) {
+                              <option [value]="ingredient.id">
+                                {{ ingredient.name }} ({{ ingredient.unit }})
+                              </option>
+                            }
+                          </select>
+                        </div>
+                        <div class="w-full md:w-1/5">
+                          <input [(ngModel)]="newIngredient.quantity" type="number" min="0.01" step="0.01"
+                            placeholder="Cantidad"
+                            class="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                          </div>
+                          <div class="w-full md:w-1/5">
+                            <select [(ngModel)]="newIngredient.unit"
+                              class="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none">
+                              <option value="unidad">Unidad</option>
+                              <option value="gramos">Gramos</option>
+                              <option value="kg">Kilogramos</option>
+                              <option value="ml">Mililitros</option>
+                              <option value="litro">Litros</option>
+                              <option value="porción">Porción</option>
+                            </select>
+                          </div>
+                          <div class="w-full md:w-1/5">
+                            <button (click)="addIngredient()"
+                              class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M12 4v16m8-8H4" />
+                                </svg>
+                                Añadir
+                              </button>
+                            </div>
+                          </div>
+
+                          <!-- Lista de ingredientes -->
+                          @if (currentDish.ingredients && currentDish.ingredients.length > 0) {
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-100 mb-3">
+                              <h4 class="font-medium text-gray-700 mb-3">Ingredientes añadidos:</h4>
+                              <ul class="space-y-2">
+                                @for (ingredient of currentDish.ingredients; track $index) {
+                                  <li class="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-100">
+                                    <span class="font-medium">
+                                      {{ ingredient.name }}
+                                      <span class="ml-2 text-gray-500">
+                                        {{ ingredient.quantity }} {{ ingredient.unit }}
+                                      </span>
+                                    </span>
+                                    <button (click)="removeIngredient($index)"
+                                      class="text-gray-400 hover:text-red-500 transition-colors">
+                                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                        fill="currentColor">
+                                        <path fill-rule="evenodd"
+                                          d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                          clip-rule="evenodd" />
+                                        </svg>
+                                      </button>
+                                    </li>
+                                  }
+                                </ul>
+                              </div>
+                            }
+                          </div>
+                        </div>
+
+                        <div class="flex justify-end space-x-3 pt-4 border-t border-gray-100">
+                          @if (isEditing) {
+                            <button (click)="resetForm()"
+                              class="px-5 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                              Cancelar
+                            </button>
+                          }
+                          @if (!isEditing) {
+                            <button (click)="createDish()"
+                              class="px-5 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2">
+                              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                                Crear producto
+                              </button>
+                            }
+                            @if (isEditing) {
+                              <button (click)="updateDish()"
+                                class="px-5 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                  stroke="currentColor">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                  </svg>
+                                  Actualizar producto
+                                </button>
+                              }
+                            </div>
+                          </div>
+
+                          <!-- Indicador de carga -->
+                          @if (loading) {
+                            <div class="flex justify-center py-8">
+                              <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+                            </div>
+                          }
+
+                          <!-- Mensaje de error -->
+                          @if (error) {
+                            <div class="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg mb-6" role="alert">
+                              <div class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fill-rule="evenodd"
+                                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                    clip-rule="evenodd" />
+                                  </svg>
+                                  <span class="font-medium">{{ error }}</span>
+                                </div>
+                              </div>
+                            }
+
+                            <!-- Lista de Productos -->
+                            @if (!loading && !error) {
+                              <div>
+                                <!-- Filtros -->
+                                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
+                                  <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                    <div>
+                                      <label class="block text-sm font-medium text-gray-700 mb-2">Filtrar por categoría</label>
+                                      <select [(ngModel)]="selectedCategory" (change)="onCategoryChange()"
+                                        class="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none">
+                                        <option value="all">Todas las categorías</option>
+                                        @for (category of categories; track category) {
+                                          <option [value]="category.id">
+                                            {{ category.name }}
+                                          </option>
+                                        }
+                                      </select>
+                                    </div>
+                                    <div>
+                                      <label class="block text-sm font-medium text-gray-700 mb-2">Buscar producto</label>
+                                      <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                            </svg>
+                                          </div>
+                                          <input [(ngModel)]="searchTerm" (input)="onSearchChange()" type="text"
+                                            placeholder="Nombre del producto..."
+                                            class="w-full pl-10 px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                          </div>
+                                        </div>
+                                        <div class="flex items-end">
+                                          <label class="inline-flex items-center">
+                                            <input type="checkbox" [(ngModel)]="showInactive" (change)="onShowInactiveChange()"
+                                              class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300">
+                                              <span class="ml-2 text-sm text-gray-700">Mostrar inactivos</span>
+                                            </label>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                                        <div class="overflow-x-auto">
+                                          <table class="min-w-full divide-y divide-gray-200">
+                                            <thead class="bg-gray-50">
+                                              <tr>
+                                                <th scope="col"
+                                                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                  producto
+                                                </th>
+                                                <th scope="col"
+                                                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                  Categoría
+                                                </th>
+                                                <th scope="col"
+                                                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                  Precio
+                                                </th>
+                                                <th scope="col"
+                                                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                  Stock
+                                                </th>
+                                                <th scope="col"
+                                                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                  Estado
+                                                </th>
+                                                <th scope="col"
+                                                  class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                  Acciones
+                                                </th>
+                                              </tr>
+                                            </thead>
+                                            <tbody class="bg-white divide-y divide-gray-100">
+                                              @for (dish of getFilteredDishes(); track dish) {
+                                                <tr [class.bg-gray-50]="!dish.active"
+                                                  class="hover:bg-gray-50 transition-colors">
+                                                  <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="flex items-center">
+                                                      <div>
+                                                        <div class="font-medium text-gray-900">{{ dish.name }}</div>
+                                                        @if (dish.description) {
+                                                          <div class="text-sm text-gray-500">
+                                                            {{ dish.description.length > 50 ? dish.description.substring(0, 50) + '...'
+                                                            :
+                                                            dish.description }}
+                                                          </div>
+                                                        }
+                                                      </div>
+                                                    </div>
+                                                  </td>
+                                                  <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm text-gray-900">{{ dish.categoryName }}</div>
+                                                  </td>
+                                                  <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm text-gray-900">${{ dish.price.toFixed(2) }}</div>
+                                                    @if (dish.options && dish.options.length > 0) {
+                                                      <div class="text-xs text-gray-500">
+                                                        {{ dish.options.length }} opciones
+                                                      </div>
+                                                    }
+                                                  </td>
+                                                  <td class="px-6 py-4 whitespace-nowrap">
+                                                    @if (dish.isTracked) {
+                                                      <div class="flex items-center">
+                                                        <span class="text-sm font-medium">{{ dish.stockQuantity }}</span>
+                                                        @if (dish.stockQuantity === 0) {
+                                                          <span
+                                                            class="ml-2 px-2 py-0.5 rounded-full text-xs bg-red-100 text-red-800">
+                                                            Agotado
+                                                          </span>
+                                                        }
+                                                        @if (dish.stockQuantity && dish.stockQuantity > 0 && dish.stockQuantity < 5) {
+                                                          <span
+                                                            class="ml-2 px-2 py-0.5 rounded-full text-xs bg-yellow-100 text-yellow-800">
+                                                            Bajo
+                                                          </span>
+                                                        }
+                                                      </div>
+                                                    }
+                                                    @if (!dish.isTracked) {
+                                                      <div class="text-xs text-gray-500">
+                                                        No rastreado
+                                                      </div>
+                                                    }
+                                                  </td>
+                                                  <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="flex items-center space-x-2">
+                                                      <span class="px-2 py-1 inline-flex text-xs leading-5 font-medium rounded-full"
+                                                        [class.bg-green-100]="dish.active" [class.text-green-800]="dish.active"
+                                                        [class.bg-red-100]="!dish.active" [class.text-red-800]="!dish.active">
+                                                        {{ dish.active ? 'Activo' : 'Inactivo' }}
+                                                      </span>
+                                                      @if (dish.featured) {
+                                                        <span
+                                                          class="px-2 py-1 inline-flex text-xs leading-5 font-medium rounded-full bg-yellow-100 text-yellow-800">
+                                                          Destacado
+                                                        </span>
+                                                      }
+                                                    </div>
+                                                  </td>
+                                                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                                    <div class="flex justify-end space-x-3">
+                                                      <button (click)="editDish(dish)"
+                                                        class="text-blue-600 hover:text-blue-800 transition-colors">
+                                                        Editar
+                                                      </button>
+                                                      <button (click)="toggleDishStatus(dish)" [class.text-red-600]="dish.active"
+                                                        [class.hover:text-red-800]="dish.active" [class.text-green-600]="!dish.active"
+                                                        [class.hover:text-green-800]="!dish.active">
+                                                        {{ dish.active ? 'Desactivar' : 'Activar' }}
+                                                      </button>
+                                                      <button (click)="deleteDish(dish)"
+                                                        class="text-red-600 hover:text-red-800 transition-colors">
+                                                        Eliminar
+                                                      </button>
+                                                    </div>
+                                                  </td>
+                                                </tr>
+                                              }
+                                              <!-- Mensaje cuando no hay productos -->
+                                              @if (getFilteredDishes().length === 0) {
+                                                <tr>
+                                                  <td colspan="6" class="px-6 py-10 text-center text-gray-500">
+                                                    <div class="flex flex-col items-center">
+                                                      <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-300 mb-2"
+                                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                        </svg>
+                                                        <p>No hay productos disponibles con los filtros seleccionados</p>
+                                                        @if (searchTerm || selectedCategory !== 'all') {
+                                                          <button
+                                                            (click)="searchTerm = ''; selectedCategory = 'all';"
+                                                            class="mt-2 text-blue-500 hover:text-blue-700 text-sm">
+                                                            Limpiar filtros
+                                                          </button>
+                                                        }
+                                                      </div>
+                                                    </td>
+                                                  </tr>
+                                                }
+                                              </tbody>
+                                            </table>
+                                            <!-- Controles de paginación -->
+                                            @if (getTotalFilteredCount() > 0) {
+                                              <div
+                                                class="mt-4 px-6 py-3 flex items-center justify-between border-t border-gray-200 bg-white">
+                                                <div class="flex-1 flex justify-between sm:hidden">
+                                                  <button [disabled]="currentPage === 1" (click)="onPageChange(currentPage - 1)"
+                                                    class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                                                    [class.opacity-50]="currentPage === 1" [class.cursor-not-allowed]="currentPage === 1">
+                                                    Anterior
+                                                  </button>
+                                                  <button [disabled]="currentPage * itemsPerPage >= getTotalFilteredCount()"
+                                                    (click)="onPageChange(currentPage + 1)"
+                                                    class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                                                    [class.opacity-50]="currentPage * itemsPerPage >= getTotalFilteredCount()"
+                                                    [class.cursor-not-allowed]="currentPage * itemsPerPage >= getTotalFilteredCount()">
+                                                    Siguiente
+                                                  </button>
+                                                </div>
+                                                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                                                  <div>
+                                                    <p class="text-sm text-gray-700">
+                                                      Mostrando
+                                                      <span class="font-medium">{{ (currentPage - 1) * itemsPerPage + 1 }}</span>
+                                                      a
+                                                      <span class="font-medium">{{
+                                                        Math.min(currentPage * itemsPerPage, getTotalFilteredCount())
+                                                      }}</span>
+                                                      de
+                                                      <span class="font-medium">{{ getTotalFilteredCount() }}</span>
+                                                      resultados
+                                                    </p>
+                                                  </div>
+                                                  <div>
+                                                    <div class="flex items-center space-x-4">
+                                                      <!-- Selector de elementos por página -->
+                                                      <div class="flex items-center">
+                                                        <span class="text-sm text-gray-700 mr-2">Mostrar:</span>
+                                                        <select [(ngModel)]="itemsPerPage" (change)="onItemsPerPageChange(itemsPerPage)"
+                                                          class="border border-gray-300 text-sm rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                                          @for (option of pageSizeOptions; track option) {
+                                                            <option [value]="option">{{ option }}
+                                                            </option>
+                                                          }
+                                                        </select>
+                                                      </div>
+                                                      <!-- Botones de navegación de páginas -->
+                                                      <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                                                        aria-label="Pagination">
+                                                        <button [disabled]="currentPage === 1" (click)="onPageChange(currentPage - 1)"
+                                                          class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                                                          [class.opacity-50]="currentPage === 1"
+                                                          [class.cursor-not-allowed]="currentPage === 1">
+                                                          <span class="sr-only">Anterior</span>
+                                                          <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                                            fill="currentColor">
+                                                            <path fill-rule="evenodd"
+                                                              d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                                                              clip-rule="evenodd" />
+                                                            </svg>
+                                                          </button>
+                                                          <!-- Números de página -->
+                                                          @for (page of getPaginationNumbers(); track page) {
+                                                            @if (page !== '...') {
+                                                              <button (click)="onPageChange(+page)"
+                                                                class="relative inline-flex items-center px-4 py-2 border text-sm font-medium"
+                                                                [class.bg-blue-50]="page === currentPage"
+                                                                [class.text-blue-600]="page === currentPage"
+                                                                [class.border-blue-500]="page === currentPage"
+                                                                [class.bg-white]="page !== currentPage"
+                                                                [class.text-gray-700]="page !== currentPage"
+                                                                [class.border-gray-300]="page !== currentPage">
+                                                                {{ page }}
+                                                              </button>
+                                                            }
+                                                            @if (page === '...') {
+                                                              <span
+                                                                class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                                                                ...
+                                                              </span>
+                                                            }
+                                                          }
+                                                          <button [disabled]="currentPage * itemsPerPage >= getTotalFilteredCount()"
+                                                            (click)="onPageChange(currentPage + 1)"
+                                                            class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                                                            [class.opacity-50]="currentPage * itemsPerPage >= getTotalFilteredCount()"
+                                                            [class.cursor-not-allowed]="currentPage * itemsPerPage >= getTotalFilteredCount()">
+                                                            <span class="sr-only">Siguiente</span>
+                                                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                                              fill="currentColor">
+                                                              <path fill-rule="evenodd"
+                                                                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                                                                clip-rule="evenodd" />
+                                                              </svg>
+                                                            </button>
+                                                          </nav>
+                                                        </div>
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                }
+                                              </div>
+                                            </div>
+                                          </div>
+                                        }
+                                      </div>

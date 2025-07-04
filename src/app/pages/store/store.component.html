@@ -1,0 +1,218 @@
+<div class="container mx-auto px-4 py-6">
+  <!-- Encabezado -->
+  <div class="bg-blue-500 rounded-xl p-6 mb-6 shadow-md">
+    <div class="flex justify-between items-center">
+      <h1 class="text-2xl lg:text-3xl font-bold text-white">Tienda</h1>
+    </div>
+    <p class="text-white text-opacity-90 mt-3">
+      Productos disponibles para compra directa, sin pasar por cocina
+    </p>
+  </div>
+
+  <!-- Mensaje informativo sobre categorías incluidas -->
+  <div class="text-center mb-6 text-sm text-gray-600 bg-blue-50 p-4 rounded-xl border border-blue-100">
+    <p>Esta sección muestra exclusivamente productos de: <span class="font-medium">Piscina, Tienda y
+    Heladería</span></p>
+  </div>
+
+  <!-- Diseño de dos columnas: Productos y Carrito -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Columna de Productos (2/3 del ancho en pantallas grandes) -->
+    <div class="lg:col-span-2">
+      <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Productos Disponibles</h2>
+
+        <!-- Búsqueda -->
+        <div class="mb-6">
+          <div class="relative">
+            <input type="text" [(ngModel)]="searchQuery" (input)="filterProducts()"
+              placeholder="Buscar productos..."
+              class="w-full px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none"
+                  viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                @if (searchQuery) {
+                  <button (click)="searchQuery = ''; filterProducts()"
+                    class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-500 hover:text-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                      fill="currentColor">
+                      <path fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clip-rule="evenodd" />
+                      </svg>
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <!-- Mensaje cuando no hay productos -->
+              @if (filteredCategories.length === 0) {
+                <div class="text-center py-8">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-300 mb-4" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <p class="text-gray-500 mb-2">No se encontraron productos</p>
+                    @if (searchQuery) {
+                      <button (click)="searchQuery = ''; filterProducts()"
+                        class="mt-2 text-blue-500 hover:underline">
+                        Limpiar búsqueda
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+
+              <!-- Lista de categorías y productos -->
+              @for (category of filteredCategories; track category) {
+                <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+                  <div class="bg-blue-500 py-3 px-6">
+                    <h3 class="text-lg font-semibold text-white">{{category.name}}</h3>
+                  </div>
+                  <div class="p-6">
+                    <div class="space-y-4">
+                      <!-- Tarjeta de producto -->
+                      @for (item of category.items; track item) {
+                        <div
+                          class="flex justify-between items-center p-4 border border-gray-100 rounded-lg hover:bg-gray-50">
+                          <div class="flex-grow">
+                            <h4 class="font-medium text-gray-800">{{item.name}}</h4>
+                            @if (item.description) {
+                              <p class="text-sm text-gray-600 mt-1 line-clamp-1">
+                              {{item.description}}</p>
+                            }
+                            <!-- Para productos con stock limitado -->
+                            @if (item.isTracked) {
+                              <div class="mt-2">
+                                <span class="text-xs text-gray-500">Stock: {{item.stockQuantity !== undefined ?
+                                item.stockQuantity : 'N/A'}}</span>
+                                @if (item.stockQuantity !== undefined && item.stockQuantity === 0) {
+                                  <span
+                                    class="ml-1 px-2 py-0.5 rounded-full text-xs bg-red-100 text-red-800">
+                                    Agotado
+                                  </span>
+                                }
+                              </div>
+                            }
+                          </div>
+                          <div class="flex items-center">
+                            <span class="text-lg font-semibold text-gray-700 mr-4">${{item.price.toFixed(2)}}</span>
+                            <!-- Botón para añadir al carrito -->
+                            <button (click)="addToCart(item)"
+                              [disabled]="item.isTracked && item.stockQuantity !== undefined && item.stockQuantity === 0"
+                              [ngClass]="{'bg-blue-500': !(item.isTracked && item.stockQuantity !== undefined && item.stockQuantity === 0), 'bg-gray-300 cursor-not-allowed': item.isTracked && item.stockQuantity !== undefined && item.stockQuantity === 0}"
+                              class="text-white py-2 px-4 rounded-lg">
+                              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <!-- Columna del Carrito (1/3 del ancho en pantallas grandes) -->
+              <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-md overflow-hidden sticky top-4">
+                  <div class="bg-blue-500 py-3 px-6">
+                    <h2 class="text-lg font-semibold text-white flex justify-between items-center">
+                      <span>Mi Carrito</span>
+                      @if (cart.length > 0) {
+                        <span class="bg-white text-blue-600 text-xs px-2 py-1 rounded-full">
+                          {{cart.length}}
+                        </span>
+                      }
+                    </h2>
+                  </div>
+
+                  <div class="p-6">
+                    <!-- Mensaje carrito vacío -->
+                    @if (cart.length === 0) {
+                      <div class="text-center py-8">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-300 mb-4" fill="none"
+                          viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                          </svg>
+                          <p class="text-gray-500">Tu carrito está vacío</p>
+                        </div>
+                      }
+
+                      <!-- Artículos en el carrito -->
+                      @if (cart.length > 0) {
+                        <div>
+                          <div class="max-h-96 overflow-y-auto mb-6">
+                            @for (item of cart; track item) {
+                              <div
+                                class="flex justify-between items-start py-4 border-b border-gray-100 last:border-b-0">
+                                <div class="flex-grow pr-4">
+                                  <h4 class="font-medium text-gray-800">{{item.name}}</h4>
+                                  <p class="text-sm text-gray-500 mt-1">{{item.categoryName}}</p>
+                                  <p class="text-gray-700 mt-1">${{item.price.toFixed(2)}}</p>
+                                </div>
+                                <div class="flex flex-col items-end">
+                                  <div
+                                    class="flex items-center mb-2 border border-gray-200 rounded-lg overflow-hidden">
+                                    <button (click)="removeFromCart(item)"
+                                      class="bg-gray-100 text-gray-700 px-3 py-1">
+                                      -
+                                    </button>
+                                    <input type="number" [(ngModel)]="item.quantity"
+                                      (change)="updateCartItemQuantity(item, item.quantity)" min="1"
+                                      [attr.max]="(item.isTracked && item.stockQuantity !== undefined) ? item.stockQuantity : 999"
+                                      class="w-10 text-center border-0 py-1 focus:outline-none text-sm">
+                                      <button (click)="addToCart(item)"
+                                        [disabled]="item.isTracked && item.stockQuantity !== undefined && item.quantity >= item.stockQuantity"
+                                        [ngClass]="{'bg-gray-100': !(item.isTracked && item.stockQuantity !== undefined && item.quantity >= item.stockQuantity), 'bg-gray-100 opacity-50 cursor-not-allowed': item.isTracked && item.stockQuantity !== undefined && item.quantity >= item.stockQuantity}"
+                                        class="text-gray-700 px-3 py-1">
+                                        +
+                                      </button>
+                                    </div>
+                                    <div class="flex items-center">
+                                      <p class="text-sm font-medium">${{item.subtotal.toFixed(2)}}</p>
+                                      <button (click)="updateCartItemQuantity(item, 0)" class="ml-2 text-red-500">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                          viewBox="0 0 24 24" stroke="currentColor">
+                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                          </svg>
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                }
+                              </div>
+                              <!-- Resumen y botones de acción -->
+                              <div class="border-t border-gray-200 pt-4">
+                                <div class="flex justify-between items-center mb-6">
+                                  <span class="font-medium text-gray-700">Total:</span>
+                                  <span class="text-xl font-bold text-gray-800">${{totalAmount.toFixed(2)}}</span>
+                                </div>
+                                <div class="flex flex-col space-y-3">
+                                  <button (click)="processPayment()" [disabled]="isProcessingOrder"
+                                    class="bg-green-500 text-white py-3 px-4 rounded-lg disabled:bg-green-300 disabled:cursor-not-allowed">
+                                    {{ isProcessingOrder ? 'Procesando...' : 'Ir a pagar' }}
+                                  </button>
+                                  <button (click)="clearCart()" class="text-red-600 text-sm text-center py-2">
+                                    Vaciar carrito
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>

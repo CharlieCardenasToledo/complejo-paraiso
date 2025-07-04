@@ -1,0 +1,46 @@
+// Estilos para animaciones y efectos visuales
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+// Estilos para tarjetas de fecha pasada
+.past-date-card {
+    position: relative;
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.05);
+        pointer-events: none;
+    }
+}
+
+// Estilos para transiciones suaves
+.transition-colors {
+    transition: background-color 0.3s, color 0.3s;
+}
+
+// Estilos para el encabezado de fecha
+.date-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: white;
+    padding: 0.5rem 0;
+}

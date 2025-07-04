@@ -1,0 +1,98 @@
+<div class="container mx-auto px-4 py-6">
+  <h1 class="text-2xl font-bold mb-6">Administración de Usuarios</h1>
+
+  <!-- Formulario para crear usuario -->
+  <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+    <h2 class="text-xl font-semibold mb-4">Crear Nuevo Usuario</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+        <input [(ngModel)]="newUser.displayName" type="text"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
+          <input [(ngModel)]="newUser.email" type="email"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+            <input [(ngModel)]="newUser.password" type="password"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Rol</label>
+              <select [(ngModel)]="newUser.role" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                <option value="admin">Administrador</option>
+                <option value="mesero">Mesero</option>
+                <option value="cocinero">Cocinero</option>
+                <option value="cobrador">Cobrador</option>
+              </select>
+            </div>
+          </div>
+
+          <button (click)="createUser()" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
+            Crear Usuario
+          </button>
+        </div>
+
+        <!-- Lista de usuarios -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <h2 class="text-xl font-semibold mb-4">Usuarios Existentes</h2>
+
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Nombre
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Correo
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Rol
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Acciones
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                @for (user of users; track user) {
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900">{{ user.displayName }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-500">{{ user.email }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full" [ngClass]="{
+                        'bg-purple-100 text-purple-800': user.role === 'admin',
+                        'bg-blue-100 text-blue-800': user.role === 'mesero',
+                        'bg-orange-100 text-orange-800': user.role === 'cocinero',
+                        'bg-green-100 text-green-800': user.role === 'cobrador'
+                      }">
+                        {{ getRoleName(user.role) }}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button (click)="editUser(user)" class="text-blue-600 hover:text-blue-900 mr-3">
+                        Editar
+                      </button>
+                      <button (click)="deleteUser(user)" class="text-red-600 hover:text-red-900">
+                        Eliminar
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>

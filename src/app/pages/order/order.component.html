@@ -1,257 +1,357 @@
-<div class="container mx-auto px-4 py-6 max-w-lg lg:max-w-4xl">
-  <!-- Botón Ver Pedidos en la parte superior -->
-  <div class="flex justify-end mb-4">
-    <button
-      (click)="goToHome()"
-      class="bg-blue-500 text-white rounded-lg py-2 px-4 shadow-md hover:bg-blue-600 flex items-center gap-2"
-    >
-      Ver Pedidos
-    </button>
-  </div>
+<!-- Main Content Container - Optimizado para SKY Device Elite T10 Pro -->
+<div class="container mx-auto px-3 py-2">
+  <!-- Sección de datos del cliente y selección de mesas en el mismo bloque para optimizar espacio -->
+  <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 mb-3">
+    <!-- Datos del Cliente -->
+    <div class="sm:col-span-6 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+      <h2 class="text-lg font-semibold mb-3 text-gray-700">Datos del Cliente</h2>
 
-  <h1 class="text-2xl lg:text-4xl font-bold text-center mb-6 text-gray-800">
-    🛒 Realizar Pedido
-  </h1>
-
-  <!-- Barra de Pasos -->
-  <div class="flex justify-between items-center mb-8">
-    <div class="flex flex-col items-center">
-      <div
-        class="w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center rounded-full border-2"
-        [class.bg-blue-500]="step === 1"
-        [class.border-blue-500]="step === 1"
-        [class.border-gray-300]="step !== 1"
-      >
-        <span
-          class="text-white text-sm lg:text-base"
-          [class.text-gray-600]="step !== 1"
-        >1</span>
-      </div>
-      <p
-        class="text-xs lg:text-sm mt-2 text-gray-600"
-        [class.text-blue-500]="step === 1"
-      >
-        Datos
-      </p>
-    </div>
-    <div class="flex flex-col items-center">
-      <div
-        class="w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center rounded-full border-2"
-        [class.bg-blue-500]="step === 2"
-        [class.border-blue-500]="step === 2"
-        [class.border-gray-300]="step !== 2"
-      >
-        <span
-          class="text-white text-sm lg:text-base"
-          [class.text-gray-600]="step !== 2"
-        >2</span>
-      </div>
-      <p
-        class="text-xs lg:text-sm mt-2 text-gray-600"
-        [class.text-blue-500]="step === 2"
-      >
-        Platos
-      </p>
-    </div>
-    <div class="flex flex-col items-center">
-      <div
-        class="w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center rounded-full border-2"
-        [class.bg-blue-500]="step === 3"
-        [class.border-blue-500]="step === 3"
-        [class.border-gray-300]="step !== 3"
-      >
-        <span
-          class="text-white text-sm lg:text-base"
-          [class.text-gray-600]="step !== 3"
-        >3</span>
-      </div>
-      <p
-        class="text-xs lg:text-sm mt-2 text-gray-600"
-        [class.text-blue-500]="step === 3"
-      >
-        Resumen
-      </p>
-    </div>
-  </div>
-
-  <!-- Paso 1: Datos del Cliente -->
-  @if (step === 1) {
-  <div class="bg-white p-4 lg:p-6 rounded-lg shadow-md">
-    <h2 class="text-lg lg:text-xl font-semibold text-gray-700 mb-4">
-      Datos del Cliente
-    </h2>
-
-    <input
-      type="text"
-      placeholder="Número de Cédula"
-      [(ngModel)]="customer.idNumber"
-      (input)="validateCustomer()"
-      pattern="^[0-9]*$"
-      minlength="10"
-      maxlength="10"
-      type="number"
-      class="w-full p-2 lg:p-3 mb-4 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-    />
-    <input
-      type="text"
-      placeholder="Nombre"
-      [(ngModel)]="customer.name"
-      class="w-full p-2 lg:p-3 mb-4 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-    />
-
-    <h3 class="text-lg font-semibold text-gray-700 mb-2">
-      Selecciona las mesas:
-    </h3>
-    <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
-      @for (i of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track i) {
-      <div
-        class="border p-4 rounded-lg cursor-pointer text-center"
-        [class.bg-blue-500]="selectedTables.includes(i)"
-        [class.text-white]="selectedTables.includes(i)"
-        [class.text-gray-800]="!selectedTables.includes(i)"
-        (click)="toggleTableSelection(i)"
-      >
-        Mesa {{ i }}
-      </div>
-      }
-    </div>
-
-    <button
-      (click)="nextStep()"
-      class="w-full bg-blue-500 text-white py-2 lg:py-3 rounded shadow hover:bg-blue-600 mt-6"
-    >
-      Siguiente
-    </button>
-  </div>
-  }
-
-  <!-- Paso 2: Selección de Platos -->
-  @if (step === 2) {
-  <!-- Barra de búsqueda -->
-  <div class="mb-4">
-    <input
-      type="text"
-      placeholder="Buscar productos..."
-      [(ngModel)]="searchQuery"
-      (input)="filterMenu()"
-      class="w-full p-2 lg:p-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-    />
-  </div>
-  <div class="relative">
-    <!-- Contenido principal -->
-    <div class="content grid grid-cols-1 lg:grid-cols-2 gap-4 px-4 py-6">
-      @for (category of filteredCategories; track category.category) {
-      <div>
-        <h2 class="text-lg font-semibold text-gray-800">
-          {{ category.category }}
-        </h2>
-        <div class="grid grid-cols-1 gap-4 mt-2">
-          @for (item of category.items; track item.id) {
-          <div class="bg-white p-4 rounded-lg shadow-md">
-            <div>
-              <h3 class="font-semibold text-gray-800">{{ item.name }}</h3>
-              <p class="text-gray-600 text-sm">${{ item.price.toFixed(2) }}</p>
-              @if (item.description) {
-              <p class="text-gray-600 text-sm">{{ item.description }}</p>
-              } @if (item.options?.length) {
-              <div class="mt-2">
-                <label class="text-gray-600 text-sm">Opciones:</label>
-                <select
-                  [(ngModel)]="item.selectedOption"
-                  (change)="
-                    updateSelectedOption(item, item.selectedOption || '')
-                  "
-                  class="mt-1 p-2 border rounded"
-                >
-                  @for (option of item.options; track option) {
-                  <option [value]="option">{{ option }}</option>
-                  }
-                </select>
-              </div>
-              }
+      <div class="grid grid-cols-1 gap-3">
+        <!-- Selector de tipo de cliente - Botones más grandes para táctil -->
+        <div>
+          <label class="block text-gray-700 text-sm font-medium mb-2">Tipo de cliente:</label>
+          <div class="flex gap-2">
+            <div class="border border-gray-200 p-4 rounded-lg cursor-pointer text-center flex-1"
+              [class.bg-teal-500]="!isConsumidorFinal" [class.text-white]="!isConsumidorFinal"
+              [class.text-gray-700]="isConsumidorFinal" (click)="setClientType(false)">
+              Con Datos
             </div>
-            <div class="flex items-center space-x-2 mt-4">
-              <button
-                (click)="removeFromOrder(item)"
-                class="bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-600"
-              >
-                -
-              </button>
-              <span class="text-gray-800">{{ getItemQuantity(item.id) }}</span>
-              <button
-                (click)="addToOrder(item)"
-                class="bg-green-500 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-green-600"
-              >
-                +
-              </button>
+            <div class="border border-gray-200 p-4 rounded-lg cursor-pointer text-center flex-1"
+              [class.bg-teal-500]="isConsumidorFinal" [class.text-white]="isConsumidorFinal"
+              [class.text-gray-700]="!isConsumidorFinal" (click)="setClientType(true)">
+              C. Final
             </div>
+          </div>
+        </div>
+
+        <!-- Campos de información del cliente - Input más grandes para táctil -->
+        <div class="flex flex-col gap-3">
+          @if (!isConsumidorFinal) {
+          <div>
+            <label class="block text-gray-700 text-sm font-medium mb-2">Cédula:</label>
+            <input type="text" placeholder="Número de Cédula" [(ngModel)]="customer.idNumber"
+              (input)="validateCustomer()" pattern="^[0-9]*$" minlength="10" maxlength="10" inputmode="numeric"
+              class="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 text-base" />
+          </div>
+          <div>
+            <label class="block text-gray-700 text-sm font-medium mb-2">Nombre:</label>
+            <input type="text" placeholder="Nombre" [(ngModel)]="customer.name"
+              class="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 text-base" />
+          </div>
+          } @else {
+          <div>
+            <label class="block text-gray-700 text-sm font-medium mb-2">Nombre para el pedido:</label>
+            <input type="text" placeholder="Nombre" [(ngModel)]="customer.name"
+              class="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 text-base" />
           </div>
           }
         </div>
       </div>
+    </div>
+
+    <!-- Selector de Mesas -->
+    <div class="sm:col-span-6 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+      <h2 class="text-lg font-semibold mb-3 text-gray-700">Seleccionar Mesas</h2>
+
+      <!-- Mesas numéricas - Grid optimizado para tablet -->
+      <div class="mb-3">
+        <h3 class="text-sm font-medium text-gray-500 mb-2">Mesas numéricas</h3>
+        <div class="grid grid-cols-5 gap-2">
+          @for (table of getNumericTables(); track table.id) {
+          <button type="button" (click)="toggleTable(table.id)"
+            class="p-3 rounded-lg text-sm flex items-center justify-center" [ngClass]="{
+                'bg-teal-500 text-white': isTableSelected(table.id),
+                'bg-gray-100 text-gray-700 hover:bg-gray-200': !isTableSelected(table.id)
+              }">
+            Mesa {{ table.id }}
+          </button>
+          }
+        </div>
+      </div>
+
+      <!-- Mesas especiales -->
+      <div>
+        <h3 class="text-sm font-medium text-gray-500 mb-2">Mesas especiales</h3>
+        <div class="grid grid-cols-3 gap-2">
+          @for (table of getSpecialTables(); track table.id) {
+          <button type="button" (click)="toggleTable(table.id)"
+            class="p-3 rounded-lg text-sm flex items-center justify-center" [ngClass]="{
+                'bg-purple-500 text-white': isTableSelected(table.id),
+                'bg-gray-100 text-gray-700 hover:bg-gray-200': !isTableSelected(table.id)
+              }">
+            {{ table.id }}
+          </button>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenedor principal de selección de productos -->
+  <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+    <!-- Columna 1: Categorías - Optimizada para tablet -->
+    <div
+      class="sm:col-span-2 bg-white p-3 rounded-xl shadow-sm border border-gray-100 max-h-[calc(100vh-240px)] overflow-y-auto">
+      <h2 class="text-lg font-semibold mb-3 text-gray-700 pb-2 border-b border-gray-100">Categorías</h2>
+      <div class="space-y-1">
+        @for (category of storeCategories; track category.id) {
+        <button (click)="selectCategory(category)" class="w-full text-left p-3 rounded-lg transition-all duration-200"
+          [ngClass]="{
+              'bg-teal-50 text-teal-700 font-medium': selectedCategory?.id === category.id,
+              'hover:bg-gray-50 text-gray-700': selectedCategory?.id !== category.id
+            }">
+          {{category.name}}
+        </button>
+        }
+      </div>
+    </div>
+
+    <!-- Columna 2: Productos - Grid optimizado para SKY Device Elite T10 Pro -->
+    <div
+      class="sm:col-span-6 bg-white p-4 rounded-xl shadow-sm border border-gray-100 max-h-[calc(100vh-240px)] overflow-y-auto">
+      <!-- Barra de búsqueda - Optimizada para entrada táctil -->
+      <div class="mb-4">
+        <div class="relative">
+          <input type="text" placeholder="Buscar productos..." [(ngModel)]="searchQuery" (input)="filterMenu()"
+            class="w-full p-3 pr-10 pl-12 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 text-base" />
+          <div class="absolute inset-y-0 left-0 flex items-center pl-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-teal-400" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          @if (searchQuery) {
+          <button (click)="searchQuery = ''; filterMenu()"
+            class="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-teal-500">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          }
+        </div>
+      </div>
+
+      <!-- Rejilla de Productos - Optimizada para tablet -->
+      @if (selectedCategory || searchQuery) {
+      <h2 class="text-lg font-semibold mb-3 text-gray-700 flex items-center">
+        <span>{{ searchQuery ? 'Resultados de búsqueda' : selectedCategory?.name }}</span>
+        @if (searchQuery) {
+        <span class="ml-2 text-sm text-teal-500">"{{searchQuery}}"</span>
+        }
+      </h2>
+
+      <div class="grid grid-cols-2 gap-3">
+        @for (item of getFilteredItems(); track item.id) {
+        <div class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex flex-col h-full">
+          <!-- Información del producto -->
+          <div class="mb-3">
+            <h3 class="font-medium text-gray-800 text-base mb-1">{{ item.name }}</h3>
+            <p class="text-teal-600 font-medium">${{ item.price.toFixed(2) }}</p>
+            @if (item.description) {
+            <p class="text-xs text-gray-500 mt-1">{{ item.description }}</p>
+            }
+
+            <!-- Indicador de stock -->
+            @if (item.isTracked && item.stockQuantity !== undefined) {
+            <span class="inline-block mt-2 text-xs px-2 py-1 rounded-full" [ngClass]="{
+                      'bg-green-100 text-green-800': item.stockQuantity > 5,
+                      'bg-yellow-100 text-yellow-800': item.stockQuantity > 0 && item.stockQuantity <= 5,
+                      'bg-red-100 text-red-800': item.stockQuantity <= 0
+                    }">
+              Stock: {{ item.stockQuantity }}
+            </span>
+            }
+          </div>
+
+          <!-- Controles para items sin opciones - Botones más grandes para táctil -->
+          @if (!item.options?.length) {
+          <div class="flex items-center">
+            <button (click)="removeFromOrder(item)"
+              class="bg-red-400 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-red-500 text-lg">
+              -
+            </button>
+            <span class="mx-3 w-8 text-center text-lg">{{ getItemQuantity(item.id) }}</span>
+            <button (click)="addToOrderNoOptions(item)"
+              class="bg-teal-500 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-teal-600 text-lg">
+              +
+            </button>
+          </div>
+          }
+
+          <!-- Sección de opciones - Controles más espaciados -->
+          @if (item.options && item.options.length > 0) {
+          <div class="mt-2">
+            <div class="py-2 px-3 bg-teal-50 text-left rounded-lg mb-3">
+              <span class="text-sm font-medium text-teal-700">Opciones disponibles</span>
+            </div>
+
+            <!-- Lista de opciones -->
+            <div class="space-y-2">
+              @for (option of item.options; track isObject(option) ? option.name : option) {
+              <div class="border border-gray-200 p-3 rounded-lg bg-gray-50">
+                <div class="flex justify-between items-center">
+                  <div>
+                    <p class="text-sm font-medium text-gray-700">
+                      {{ isObject(option) ? option.name : option }}
+                      @if (isObject(option) && option.price && option.price > 0) {
+                      <span class="text-xs text-teal-600 ml-1">
+                        +${{ option.price.toFixed(2) }}
+                      </span>
+                      }
+                    </p>
+                  </div>
+                  <div class="flex items-center">
+                    <button
+                      (click)="removeFromOrder(createItemWithOption(item, isObject(option) ? option.name : option))"
+                      class="bg-red-400 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-500">
+                      -
+                    </button>
+                    <span class="mx-3 w-6 text-center">
+                      {{ getItemQuantity(item.id, isObject(option) ? option.name : option) }}
+                    </span>
+                    <button (click)="addItemWithOption(item, isObject(option) ? option.name : option)"
+                      class="bg-teal-500 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-teal-600">
+                      +
+                    </button>
+                  </div>
+                </div>
+              </div>
+              }
+            </div>
+          </div>
+          }
+        </div>
+        }
+      </div>
+
+      <!-- Mensaje de resultados vacíos -->
+      @if (getFilteredItems().length === 0) {
+      <div class="text-center py-8">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-teal-300 mb-3" fill="none"
+          viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+        <p class="text-gray-500">No se encontraron productos que coincidan con tu búsqueda.</p>
+        @if (searchQuery) {
+        <button (click)="searchQuery = ''; filterMenu()"
+          class="mt-3 text-teal-500 hover:text-teal-700 text-base px-4 py-2">
+          Limpiar búsqueda
+        </button>
+        }
+      </div>
+      }
+      }
+
+      <!-- Indicador para seleccionar categoría -->
+      @if (!selectedCategory && !searchQuery) {
+      <div class="text-center py-10">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-teal-300 mb-3" fill="none"
+          viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h7" />
+        </svg>
+        <p class="text-gray-500 text-lg">Selecciona una categoría o busca un producto para comenzar.</p>
+      </div>
       }
     </div>
 
-    <!-- Botones flotantes -->
-    <div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 flex gap-4">
-      <button
-        (click)="previousStep()"
-        class="bg-gray-400 text-white py-2 px-4 rounded hover:bg-gray-500 transition"
-      >
-        Anterior
-      </button>
-      <button
-        (click)="nextStep()"
-        class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition"
-      >
-        Siguiente
-      </button>
-    </div>
-  </div>
-  }
+    <!-- Columna 3: Carrito - Adaptado para tablet -->
+    <div
+      class="sm:col-span-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col max-h-[calc(100vh-240px)]">
+      <h2 class="text-lg font-semibold mb-3 text-gray-700 flex justify-between items-center">
+        <span>Comanda</span>
+        @if (orderItems.length > 0) {
+        <button (click)="clearCart()"
+          class="text-sm text-red-500 hover:text-red-700 flex items-center gap-1 p-2 rounded-lg hover:bg-red-50">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          Vaciar
+        </button>
+        }
+      </h2>
 
-  <!-- Paso 3: Resumen del Pedido -->
-  @if (step === 3) {
-  <div class="bg-white p-4 lg:p-6 rounded-lg shadow-md">
-    <h2 class="text-lg lg:text-xl font-semibold text-gray-700 mb-4">
-      Resumen del Pedido
-    </h2>
-    <p class="text-gray-800 font-semibold mb-2">Nombre: {{ customer.name }}</p>
-    <p class="text-gray-800 font-semibold mb-2">
-      Número de Cédula: {{ customer.idNumber }}
-    </p>
-    <p class="text-gray-800 font-semibold mb-2">
-      Mesas Seleccionadas: {{ selectedTables.join(", ") }}
-    </p>
-    <div class="mt-4">
-      <h3 class="text-lg font-semibold text-gray-700">Detalles del Pedido:</h3>
-      @for (item of orderItems; track item.id) {
-      <p class="text-gray-800">
-        {{ item.name }} x{{ item.quantity }} - ${{
-        (item.price * item.quantity).toFixed(2)
-        }}
-      </p>
-      @if (item.selectedOption) {
-      <p class="text-gray-600 text-sm">Opción: {{ item.selectedOption }}</p>
-      } }
-    </div>
-    <p class="text-lg font-bold text-gray-800 mt-4">
-      Total: ${{ getTotal().toFixed(2) }}
-    </p>
-    <div class="mt-6 flex justify-between">
-      <button
-        (click)="previousStep()"
-        class="bg-gray-400 text-white py-2 px-4 rounded hover:bg-gray-500"
-      >
-        Anterior
-      </button>
-      <button
-        (click)="confirmOrder()"
-        class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
-      >
-        Confirmar
-      </button>
+      <!-- Elementos del carrito -->
+      <div class="overflow-y-auto flex-grow">
+        @if (orderItems.length > 0) {
+        <div class="space-y-3">
+          @for (item of prepareItemsForSummary(); track item.id + (item.selectedOption || '')) {
+          <div class="flex justify-between bg-gray-50 p-3 rounded-lg">
+            <div class="flex-grow pr-2">
+              <p class="text-base font-medium text-gray-800">{{ item.name }}</p>
+              @if (item.selectedOption) {
+              <div class="text-sm text-gray-600">
+                {{ item.selectedOption }}
+                @if (getOptionPrice(item.selectedOption, item) > 0) {
+                <span class="text-teal-600">
+                  (+${{ getOptionPrice(item.selectedOption, item).toFixed(2) }})
+                </span>
+                }
+              </div>
+              }
+              <p class="text-xs text-gray-500">{{ item.categoryName }}</p>
+            </div>
+            <div class="flex flex-col items-end">
+              <p class="text-base font-medium text-teal-600">${{ (calculateItemPrice(item) * item.quantity).toFixed(2)
+                }}</p>
+              <div class="flex items-center mt-2">
+                <button (click)="removeFromOrder(item)"
+                  class="bg-red-400 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-500">
+                  -
+                </button>
+                <span class="mx-2 w-6 text-center">{{ item.quantity }}</span>
+                <button
+                  (click)="item.selectedOption ? addItemWithOption(item, item.selectedOption) : addToOrderNoOptions(item)"
+                  class="bg-teal-500 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-teal-600">
+                  +
+                </button>
+              </div>
+            </div>
+          </div>
+          }
+        </div>
+        } @else {
+        <div class="text-center py-10">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 mx-auto text-teal-300 mb-3" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          <p class="text-gray-500 text-lg">La comanda está vacía.</p>
+        </div>
+        }
+      </div>
+
+      <!-- Total y botón de confirmar -->
+      <div class="mt-3 pt-3 border-t border-gray-100">
+        <div class="flex justify-between mb-4 items-center">
+          <p class="font-bold text-xl text-gray-800">Total:</p>
+          <p class="font-bold text-xl text-teal-600">${{ getTotal().toFixed(2) }}</p>
+        </div>
+        <button (click)="confirmOrder()"
+          [disabled]="orderItems.length === 0 || isProcessingOrder || selectedTables.length === 0 || !customer.name"
+          class="w-full py-4 rounded-lg flex items-center justify-center gap-2 text-white text-lg font-medium"
+          [ngClass]="orderItems.length === 0 || isProcessingOrder || selectedTables.length === 0 || !customer.name ? 
+            'bg-gray-300 cursor-not-allowed' : 'bg-teal-500 hover:bg-teal-600'">
+          <span>{{ isProcessingOrder ? 'Procesando...' : 'Confirmar Pedido' }}</span>
+          @if (!isProcessingOrder) {
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+          } @else {
+          <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+            viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+            </path>
+          </svg>
+          }
+        </button>
+      </div>
     </div>
   </div>
-  }
 </div>

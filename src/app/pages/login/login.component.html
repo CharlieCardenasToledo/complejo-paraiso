@@ -1,0 +1,61 @@
+<!-- login.component.html -->
+<div class="flex min-h-screen">
+    <!-- Contenido izquierdo (formulario) -->
+    <div class="flex-1 flex flex-col justify-center px-8 md:px-16 lg:px-20">
+        <!-- Formulario de login -->
+        <div class="w-full max-w-md mx-auto">
+            <h2 class="text-4xl font-light text-teal-400 mb-2">Bienvenido de Nuevo</h2>
+            <p class="text-gray-400 mb-8">Ingresa tu correo y contraseña para iniciar sesión</p>
+
+            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+                <div class="mb-4">
+                    <label class="block text-gray-600 mb-2">Correo</label>
+                    <input type="email" formControlName="email" placeholder="Tu dirección de correo"
+                        class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-400">
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-gray-600 mb-2">Contraseña</label>
+                    <input type="password" formControlName="password" placeholder="Tu contraseña"
+                        class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-400">
+                </div>
+
+                <div class="flex items-center mb-6">
+                    <div class="relative inline-block w-10 mr-2 align-middle">
+                        <input type="checkbox" formControlName="rememberMe" id="rememberMe"
+                            class="opacity-0 absolute h-0 w-0">
+                        <label for="rememberMe"
+                            class="block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer toggle-label">
+                            <span
+                                class="block bg-white rounded-full h-6 w-6 transform transition-transform duration-200 ease-in-out toggle-dot"
+                                [ngClass]="{'translate-x-4': loginForm.get('rememberMe')?.value}"></span>
+                        </label>
+                    </div>
+                    <label for="rememberMe" class="text-gray-600">Recordarme</label>
+                </div>
+
+                <button type="submit"
+                    class="w-full bg-teal-400 hover:bg-teal-500 text-white uppercase font-medium py-3 px-4 rounded-lg transition duration-200">
+                    INICIAR SESIÓN
+                </button>
+            </form>
+
+            <div class="mt-4 text-center">
+                <p class="text-gray-400">
+                    ¿No tienes una cuenta? <a href="#" class="text-teal-400">Regístrate</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="absolute bottom-4 left-0 right-0 text-center text-gray-400 text-sm">
+            © 2021, Hecho con ❤️ por Creative Tim & Simmmple para una mejor web.
+            <div class="mt-2 space-x-4">
+                <a href="#" class="text-gray-400 hover:text-gray-600">Creative Tim</a>
+                <a href="#" class="text-gray-400 hover:text-gray-600">Simmmple</a>
+                <a href="#" class="text-gray-400 hover:text-gray-600">Blog</a>
+                <a href="#" class="text-gray-400 hover:text-gray-600">Licencia</a>
+            </div>
+        </div>
+    </div>
+</div>

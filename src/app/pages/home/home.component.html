@@ -1,283 +1,867 @@
-<div class="container mx-auto px-4 py-6">
-  <!-- Botones de navegación en la parte superior -->
-  <div class="flex justify-end mb-4">
-    <button
-      (click)="navigateToKitchen()"
-      class="bg-orange-500 text-white rounded-lg py-2 px-4 shadow-md hover:bg-orange-600 flex items-center gap-2 mr-2"
-    >
-      👨‍🍳 Cocina
-    </button>
-    <button
-      (click)="navigateToOrders()"
-      class="bg-blue-500 text-white rounded-lg py-2 px-4 shadow-md hover:bg-blue-600 flex items-center gap-2"
-    >
-      🍽️ Nuevo Pedido
-    </button>
-  </div>
+<!-- src/app/pages/home/home.component.html -->
+<div class="container mx-auto px-2 py-3">
+  <audio #notificationSound preload="auto">
+    <source src="assets/sound/notification.mp3" type="audio/mpeg">
+    Tu navegador no soporta el elemento de audio.
+  </audio>
 
-  <h1 class="font-bold text-2xl lg:text-3xl mb-6 text-center text-gray-800">
-    📊 Dashboard de Ventas
-  </h1>
+  <!-- Filtros y Búsqueda: Diseño optimizado para Elite T10 Pro -->
+  <div class="flex flex-col sm:flex-row justify-between items-center mb-4 mt-2 gap-2">
+    <!-- Filtros de fecha -->
+    <div class="bg-white rounded-lg shadow-sm flex flex-wrap overflow-hidden">
+      <button (click)="setDateFilter('today')" class="px-3 py-2 text-xs font-medium transition-colors"
+        [class.bg-teal-500]="selectedDateFilter === 'today'" [class.text-white]="selectedDateFilter === 'today'"
+        [class.text-gray-700]="selectedDateFilter !== 'today'">
+        Hoy
+      </button>
+      <button (click)="setDateFilter('yesterday')" class="px-3 py-2 text-xs font-medium transition-colors"
+        [class.bg-teal-500]="selectedDateFilter === 'yesterday'" [class.text-white]="selectedDateFilter === 'yesterday'"
+        [class.text-gray-700]="selectedDateFilter !== 'yesterday'">
+        Ayer
+      </button>
+      <button (click)="setDateFilter('week')" class="px-3 py-2 text-xs font-medium transition-colors"
+        [class.bg-teal-500]="selectedDateFilter === 'week'" [class.text-white]="selectedDateFilter === 'week'"
+        [class.text-gray-700]="selectedDateFilter !== 'week'">
+        Semana
+      </button>
+      <button (click)="setDateFilter('all')" class="px-3 py-2 text-xs font-medium transition-colors"
+        [class.bg-teal-500]="selectedDateFilter === 'all'" [class.text-white]="selectedDateFilter === 'all'"
+        [class.text-gray-700]="selectedDateFilter !== 'all'">
+        Todo
+      </button>
 
-  <!-- Selector de fecha -->
-  <div class="mb-6">
-    <label for="dateSelector" class="block text-sm font-medium text-gray-700 mb-1">Seleccionar Período:</label>
-    <select
-      id="dateSelector"
-      [(ngModel)]="selectedDate"
-      (change)="onDateChange($event)"
-      class="w-full md:w-64 bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-    >
-      <option value="overall">Todos los períodos</option>
-      <option *ngFor="let date of allDates" [value]="date">{{ date | formatDateSpanish }}</option>
-    </select>
-  </div>
-
-  <!-- Filtro para mostrar solo pedidos con platos listos -->
-  <div class="mb-6 flex items-center">
-    <input
-      type="checkbox"
-      id="readyItemsFilter"
-      [(ngModel)]="showOnlyWithReadyItems"
-      class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500"
-    />
-    <label for="readyItemsFilter" class="text-sm font-medium text-gray-700">
-      Mostrar solo pedidos con platos listos para servir
-    </label>
-  </div>
-
-  <!-- Tarjetas de estadísticas principales -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-    <!-- Ingresos totales -->
-    <div class="bg-white rounded-lg shadow-md p-5 border-l-4 border-blue-500">
-      <h3 class="text-sm font-medium text-gray-500">Ingresos Totales</h3>
-      <p class="mt-1 text-2xl font-semibold text-gray-900">${{ getSelectedStats().totalRevenue.toFixed(2) }}</p>
-      <div class="mt-2 flex items-center text-sm">
-        <span class="text-gray-500">{{ getSelectedStats().orderCount }} pedidos</span>
+      <!-- Selector de fecha específica -->
+      <div class="flex items-center px-2" [class.bg-teal-500]="selectedDateFilter === 'custom'"
+        [class.text-white]="selectedDateFilter === 'custom'">
+        <input #dateInput type="date" class="bg-transparent border-none text-xs p-1 focus:outline-none"
+          [class.text-white]="selectedDateFilter === 'custom'" [value]="customDate | date:'yyyy-MM-dd'"
+          (change)="setCustomDate(dateInput.value)">
       </div>
     </div>
 
-    <!-- Ticket promedio -->
-    <div class="bg-white rounded-lg shadow-md p-5 border-l-4 border-green-500">
-      <h3 class="text-sm font-medium text-gray-500">Ticket Promedio</h3>
-      <p class="mt-1 text-2xl font-semibold text-gray-900">${{ getSelectedStats().averageTicket.toFixed(2) }}</p>
-      <div class="mt-2 flex items-center text-sm">
-        <span class="text-gray-500">{{ getSelectedStats().totalItems }} items totales</span>
-      </div>
-    </div>
+    <div class="flex space-x-2">
+      <!-- Botón de sonido -->
+      <button (click)="toggleSound()"
+        class="inline-flex items-center justify-center p-2.5 rounded-full bg-white shadow-md text-gray-700 hover:bg-gray-100 active:bg-gray-200"
+        [class.bg-teal-100]="soundEnabled" [class.text-teal-700]="soundEnabled"
+        title="{{soundEnabled ? 'Desactivar sonido' : 'Activar sonido'}}">
+        @if (soundEnabled) {
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M15.536 8.464a5 5 0 010 7.072M12 6a7.975 7.975 0 014 1.07M15 11a3.5 3.5 0 00-5 0M9.879 16.121A3 3 0 1012 12M12 12v.01" />
+        </svg>
+        } @else {
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M5.586 15.414a8 8 0 1112.828 0M12 6a7.965 7.965 0 00-5.657 2.343M12 15a3 3 0 100-6 3 3 0 000 6z" />
+        </svg>
+        }
+      </button>
 
-    <!-- Estado de pedidos -->
-    <div class="bg-white rounded-lg shadow-md p-5 border-l-4 border-yellow-500">
-      <h3 class="text-sm font-medium text-gray-500">Estado de Pedidos</h3>
-      <div class="mt-2 grid grid-cols-1 gap-2">
-        <div class="flex items-center">
-          <div class="w-full bg-gray-200 rounded-full h-2.5">
-            <div class="bg-yellow-400 h-2.5 rounded-full"
-              [style.width.%]="getStatusPercentage('En espera')"></div>
-          </div>
-          <span class="ml-2 text-sm text-gray-600">{{ getSelectedStats().statusCounts['En espera'] || 0 }} En espera</span>
-        </div>
-        <div class="flex items-center">
-          <div class="w-full bg-gray-200 rounded-full h-2.5">
-            <div class="bg-blue-400 h-2.5 rounded-full"
-              [style.width.%]="getStatusPercentage('En preparación')"></div>
-          </div>
-          <span class="ml-2 text-sm text-gray-600">{{ getSelectedStats().statusCounts['En preparación'] || 0 }} En preparación</span>
-        </div>
-        <div class="flex items-center">
-          <div class="w-full bg-gray-200 rounded-full h-2.5">
-            <div class="bg-green-400 h-2.5 rounded-full"
-              [style.width.%]="getStatusPercentage('Realizado')"></div>
-          </div>
-          <span class="ml-2 text-sm text-gray-600">{{ getSelectedStats().statusCounts['Realizado'] || 0 }} Realizados</span>
-        </div>
-      </div>
-    </div>
+      <!-- Botón de notificaciones -->
+      <button (click)="toggleNotifications()"
+        class="inline-flex items-center justify-center p-2.5 rounded-full bg-white shadow-md text-gray-700 hover:bg-gray-100 active:bg-gray-200"
+        [class.bg-blue-100]="notificationsEnabled" [class.text-blue-700]="notificationsEnabled"
+        title="{{notificationsEnabled ? 'Desactivar notificaciones' : 'Activar notificaciones'}}">
+        @if (notificationsEnabled) {
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
+        } @else {
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 01-6 0v-1m6 0H9" />
+        </svg>
+        }
+      </button>
 
-    <!-- Productos más vendidos -->
-    <div class="bg-white rounded-lg shadow-md p-5 border-l-4 border-purple-500">
-      <h3 class="text-sm font-medium text-gray-500">Producto Más Vendido</h3>
-      <p class="mt-1 text-xl font-semibold text-gray-900" *ngIf="getSelectedStats().topProducts.length > 0">
-        {{ getSelectedStats().topProducts[0].name }}
-      </p>
-      <p class="mt-1 text-xl font-semibold text-gray-900" *ngIf="getSelectedStats().topProducts.length === 0">
-        No hay datos
-      </p>
-      <div class="mt-2 flex items-center text-sm" *ngIf="getSelectedStats().topProducts.length > 0">
-        <span class="text-gray-500">{{ getSelectedStats().topProducts[0].quantity }} unidades vendidas</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Sección de Productos Más Vendidos -->
-  <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-    <h2 class="text-lg font-semibold text-gray-800 mb-4">Top Productos Más Vendidos</h2>
-
-    <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-          <tr>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Producto
-            </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Cantidad
-            </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Ingresos
-            </th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          <tr *ngFor="let product of getSelectedStats().topProducts; let i = index">
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="flex items-center">
-                <div class="flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center"
-                  [ngStyle]="{'background-color': getColor(i)}">
-                  <span class="text-white text-xs">{{ i + 1 }}</span>
-                </div>
-                <div class="ml-4">
-                  <div class="text-sm font-medium text-gray-900">{{ product.name }}</div>
-                </div>
-              </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm text-gray-900">{{ product.quantity }}</div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm text-gray-900">${{ product.revenue.toFixed(2) }}</div>
-            </td>
-          </tr>
-          <tr *ngIf="getSelectedStats().topProducts.length === 0">
-            <td colspan="3" class="px-6 py-4 text-center text-sm text-gray-500">
-              No hay datos disponibles
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Lista de Pedidos (Sección original) -->
-  <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-    <h2 class="text-lg font-semibold text-gray-800 mb-4">Detalle de Pedidos Recientes</h2>
-
-    <!-- Lista agrupada por fechas -->
-    <div *ngFor="let date of visibleDates">
-      <h3 class="font-semibold text-md mt-6 mb-4 text-gray-700">
-        {{ date | formatDateSpanish }}
-      </h3>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div
-          *ngFor="let order of getOrdersForDate(date)"
-          class="bg-white shadow-lg rounded-lg p-6 border-l-4"
-          [ngClass]="{
-            'border-yellow-400': order.status === 'En espera',
-            'border-blue-400': order.status === 'En preparación',
-            'border-green-400': order.status === 'Realizado'
-          }"
-        >
-          <div class="flex justify-between items-start flex-wrap">
-            <div>
-              <h2 class="font-bold text-lg break-words text-gray-900">
-                {{ order.customer.name }}
-              </h2>
-              <p class="text-sm text-gray-600 break-words">
-                ID: {{ order.customer.idNumber }}
-              </p>
-              <p class="text-sm text-gray-600" *ngIf="order.tables">
-                Mesas: {{ order.tables.join(', ') }}
-              </p>
-            </div>
-            <p class="text-sm text-gray-500 whitespace-nowrap">
-              {{ order.date | date : "dd/MM/yyyy HH:mm" }}
-            </p>
-          </div>
-
-          <!-- Estado general del pedido -->
-          <div class="mt-2">
-            <span
-              class="px-2 py-1 rounded-full text-xs font-medium"
-              [ngClass]="{
-                'bg-yellow-100 text-yellow-800': order.status === 'En espera',
-                'bg-blue-100 text-blue-800': order.status === 'En preparación',
-                'bg-green-100 text-green-800': order.status === 'Realizado'
-              }"
-            >
-              {{ order.status || 'En espera' }}
-            </span>
-          </div>
-
-          <div class="flex justify-between items-center mt-4">
-            <p class="font-semibold text-gray-700">Total:</p>
-            <p class="text-lg font-bold text-gray-800">
-              ${{ order.total.toFixed(2) }}
-            </p>
-          </div>
-
-          <!-- Lista de artículos con estados individuales -->
-          <div class="mt-4">
-            <p class="font-semibold text-gray-700 mb-2">Artículos:</p>
-            <div class="space-y-2">
-              <div
-                *ngFor="let item of order.items"
-                class="p-2 rounded-md flex justify-between items-center"
-                [ngClass]="getItemStatusClass(item.status || 'En espera')"
-              >
-                <div>
-                  <span class="text-sm text-gray-700">
-                    {{ item.quantity }}x {{ item.name }}
-                    <span *ngIf="item.selectedOption" class="text-gray-500">
-                      ({{ item.selectedOption }})
-                    </span>
-                  </span>
-                  <div class="mt-1">
-                    <span
-                      class="text-xs px-2 py-1 rounded-full"
-                      [ngClass]="{
-                        'bg-yellow-100 text-yellow-800': (item.status || 'En espera') === 'En espera',
-                        'bg-blue-100 text-blue-800': (item.status || 'En espera') === 'En preparación',
-                        'bg-green-100 text-green-800': (item.status || 'En espera') === 'Realizado'
-                      }"
-                    >
-                      {{ item.status || 'En espera' }}
-                    </span>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <p class="text-sm font-medium">${{ (item.quantity * item.price).toFixed(2) }}</p>
-
-                  <!-- Icono para platos listos -->
-                  <span
-                    *ngIf="(item.status || 'En espera') === 'Realizado'"
-                    class="inline-block text-green-600 text-lg"
-                    title="¡Listo para servir!"
-                  >
-                    ✓
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Indicador de platos listos -->
-          <div *ngIf="hasReadyItems(order)" class="mt-4 p-2 bg-green-100 rounded-lg text-center animate-pulse">
-            <p class="text-green-800 font-medium">
-              ¡Hay platos listos para servir! 🔔
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Botón para cargar más fechas -->
-    <div class="text-center mt-6" *ngIf="visibleDates.length < allDates.length">
-      <button
-        (click)="loadMoreDates()"
-        class="bg-blue-500 text-white rounded-full px-6 py-2 shadow-lg hover:bg-blue-600 transition-all duration-300"
-      >
-        Cargar más
+      <!-- Botón de pantalla completa -->
+      <button (click)="toggleFullscreen()"
+        class="inline-flex items-center justify-center p-2.5 rounded-full bg-white shadow-md text-gray-700 hover:bg-gray-100 active:bg-gray-200"
+        [class.bg-purple-100]="isFullscreen" [class.text-purple-700]="isFullscreen"
+        title="{{isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}}">
+        @if (isFullscreen) {
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 9L4 4m0 0l5 0m-5 0l0 5M15 4l5 0m0 0l-5 5m5-5l0 5M4 15l5 5m-5 0l0-5m0 5l5 0M15 20l5-5m0 5l0-5m0 5l-5 0" />
+        </svg>
+        } @else {
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+        </svg>
+        }
       </button>
     </div>
   </div>
+
+  <!-- Sistema de pestañas mejorado con iconos y controles táctiles más grandes -->
+  <div class="bg-white rounded-lg shadow-md">
+    <!-- Barra de fecha con controles de navegación más accesibles -->
+    <div class="flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
+      <h2 class="text-lg font-medium text-gray-800">
+        @if (selectedDateFilter === 'today') {
+        <span>{{ currentDate | formatDateSpanish }}</span>
+        } @else if (selectedDateFilter === 'yesterday') {
+        <span>Ayer</span>
+        } @else if (selectedDateFilter === 'week') {
+        <span>Últimos 7 días</span>
+        } @else if (selectedDateFilter === 'custom') {
+        <span>{{ customDate | formatDateSpanish }}</span>
+        } @else {
+        <span>Todos los registros</span>
+        }
+      </h2>
+    </div>
+
+    <!-- Resumen de pedidos en tarjetas de estado -->
+    <div class="flex justify-between p-3 bg-gray-50">
+      @let counts = getStatusCounts();
+      @let waitingCount = counts.waitingCount;
+      @let preparingCount = counts.preparingCount;
+      @let readyCount = counts.readyCount;
+      @let servedCount = counts.servedCount;
+      @let paidCount = counts.paidCount;
+
+      <div class="flex-1 bg-yellow-50 rounded-lg p-3 mx-1 shadow-sm border border-yellow-100">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-yellow-700" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="text-xs font-medium text-yellow-800">En espera</span>
+          </div>
+          <span
+            class="bg-yellow-200 text-yellow-800 text-sm font-bold rounded-full h-7 w-7 flex items-center justify-center">
+            {{ waitingCount }}
+          </span>
+        </div>
+      </div>
+
+      <div class="flex-1 bg-blue-50 rounded-lg p-3 mx-1 shadow-sm border border-blue-100">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-blue-700" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            <span class="text-xs font-medium text-blue-800">Preparando</span>
+          </div>
+          <span
+            class="bg-blue-200 text-blue-800 text-sm font-bold rounded-full h-7 w-7 flex items-center justify-center">
+            {{ preparingCount }}
+          </span>
+        </div>
+      </div>
+
+      <div class="flex-1 bg-green-50 rounded-lg p-3 mx-1 shadow-sm border border-green-100">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-green-700" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="text-xs font-medium text-green-800">Listos para servir</span>
+          </div>
+          <span
+            class="bg-green-200 text-green-800 text-sm font-bold rounded-full h-7 w-7 flex items-center justify-center">
+            {{ readyCount }}
+          </span>
+        </div>
+      </div>
+
+      <div class="flex-1 bg-indigo-50 rounded-lg p-3 mx-1 shadow-sm border border-indigo-100">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-indigo-700" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <span class="text-xs font-medium text-indigo-800">Servido</span>
+          </div>
+          <span
+            class="bg-indigo-200 text-indigo-800 text-sm font-bold rounded-full h-7 w-7 flex items-center justify-center">
+            {{ servedCount }}
+          </span>
+        </div>
+      </div>
+
+      <div class="flex-1 bg-purple-50 rounded-lg p-3 mx-1 shadow-sm border border-purple-100">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-purple-700" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            <span class="text-xs font-medium text-purple-800">Cobrado</span>
+          </div>
+          <span
+            class="bg-purple-200 text-purple-800 text-sm font-bold rounded-full h-7 w-7 flex items-center justify-center">
+            {{ paidCount }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vista principal - Layout de acordeón horizontal para aprovechar mejor el espacio -->
+    <div class="p-2">
+      <!-- Sección En espera -->
+      <div class="mb-3 rounded-lg overflow-hidden shadow-sm border border-gray-200">
+        <div class="flex items-center bg-yellow-100 px-4 py-3 cursor-pointer" (click)="toggleSection('waiting')">
+          <div class="w-3 h-3 rounded-full bg-yellow-400 mr-2"></div>
+          <h4 class="font-medium text-yellow-800 text-sm">En espera</h4>
+          <span class="ml-2 bg-yellow-200 text-yellow-800 text-xs font-medium px-2 py-1 rounded-full">
+            {{ getItemsByStatus('En espera').length }}
+          </span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-auto text-yellow-600"
+            [class.transform]="sectionExpanded.waiting" [class.rotate-180]="sectionExpanded.waiting" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+
+        <!-- Contenido expandible -->
+        @if (sectionExpanded.waiting) {
+        <div class="bg-white p-2">
+          <div class="grid grid-cols-2 gap-2">
+            @let waitingItems = getItemsByStatus('En espera');
+            @if (waitingItems.length === 0) {
+            <div class="col-span-2 flex flex-col justify-center items-center h-20 text-gray-400 text-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2" />
+              </svg>
+              <span>No hay ítems en espera</span>
+            </div>
+            } @else {
+            @for (item of waitingItems; track item.id + '-' + (item.selectedOption || '') + '-' + (item.quantity ||
+            '1')) {
+            @let orderBgColor = getOrderColor(item.orderId);
+
+            <div [ngStyle]="{'background-color': orderBgColor, 'border-color': orderBgColor}"
+              class="border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 active:opacity-80"
+              (click)="viewOrderDetails(getOrderById(item.orderId || ''))">
+              <div class="p-3">
+                <!-- Información del ítem -->
+                <div class="flex justify-between items-center border-b border-white border-opacity-30 pb-2">
+                  <div>
+                    <h5 class="font-bold text-gray-900 text-sm">{{ item.quantity }}x {{ item.name }}</h5>
+                    @if (item.selectedOption) {
+                    <p class="text-xs text-gray-600">
+                      {{ item.selectedOption }}
+                    </p>
+                    }
+                  </div>
+                  <span class="text-xs bg-white bg-opacity-30 px-2 py-1 rounded-lg">
+                    Mesa {{ item.tableInfo }}
+                  </span>
+                </div>
+
+                <!-- Cliente y hora -->
+                <div class="mt-2 flex justify-between">
+                  <span class="text-xs text-gray-700 font-medium">{{ item.customerName }}</span>
+                  <span class="text-xs text-gray-600">
+                    {{ item.orderDate | date : "HH:mm" }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            }
+            }
+          </div>
+        </div>
+        }
+      </div>
+
+      <!-- Sección En preparación -->
+      <div class="mb-3 rounded-lg overflow-hidden shadow-sm border border-gray-200">
+        <div class="flex items-center bg-blue-100 px-4 py-3 cursor-pointer" (click)="toggleSection('preparing')">
+          <div class="w-3 h-3 rounded-full bg-blue-400 mr-2"></div>
+          <h4 class="font-medium text-blue-800 text-sm">En preparación</h4>
+          <span class="ml-2 bg-blue-200 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
+            {{ getItemsByStatus('En preparación').length }}
+          </span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-auto text-blue-600"
+            [class.transform]="sectionExpanded.preparing" [class.rotate-180]="sectionExpanded.preparing" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+
+        <!-- Contenido expandible -->
+        @if (sectionExpanded.preparing) {
+        <div class="bg-white p-2">
+          <div class="grid grid-cols-2 gap-2">
+            @let preparingItems = getItemsByStatus('En preparación');
+            @if (preparingItems.length === 0) {
+            <div class="col-span-2 flex flex-col justify-center items-center h-20 text-gray-400 text-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2" />
+              </svg>
+              <span>No hay ítems en preparación</span>
+            </div>
+            } @else {
+            @for (item of preparingItems; track $index + '-' + item.id + '-' + (item.selectedOption || '') + '-' +
+            (item.quantity || '1')) {
+            @let orderBgColor = getOrderColor(item.orderId);
+
+            <div [ngStyle]="{'background-color': orderBgColor, 'border-color': orderBgColor}"
+              class="border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 active:opacity-80"
+              (click)="viewOrderDetails(getOrderById(item.orderId || ''))">
+              <div class="p-3">
+                <!-- Información del ítem -->
+                <div class="flex justify-between items-center border-b border-white border-opacity-30 pb-2">
+                  <div>
+                    <h5 class="font-bold text-gray-900 text-sm">{{ item.quantity }}x {{ item.name }}</h5>
+                    @if (item.selectedOption) {
+                    <p class="text-xs text-gray-600">
+                      {{ item.selectedOption }}
+                    </p>
+                    }
+                  </div>
+                  <span class="text-xs bg-white bg-opacity-30 px-2 py-1 rounded-lg">
+                    Mesa {{ item.tableInfo }}
+                  </span>
+                </div>
+
+                <!-- Cliente y hora -->
+                <div class="mt-2 flex justify-between">
+                  <span class="text-xs text-gray-700 font-medium">{{ item.customerName }}</span>
+                  <span class="text-xs text-gray-600">
+                    {{ item.orderDate | date : "HH:mm" }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            }
+            }
+          </div>
+        </div>
+        }
+      </div>
+
+      <!-- Sección Listos para servir -->
+      <div class="mb-3 rounded-lg overflow-hidden shadow-sm border border-gray-200">
+        <div class="flex items-center bg-green-100 px-4 py-3 cursor-pointer" (click)="toggleSection('ready')">
+          <div class="w-3 h-3 rounded-full bg-green-400 mr-2"></div>
+          <h4 class="font-medium text-green-800 text-sm">Listos para servir</h4>
+          <span class="ml-2 bg-green-200 text-green-800 text-xs font-medium px-2 py-1 rounded-full">
+            {{ getItemsByStatus('Listos para servir').length }}
+          </span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-auto text-green-600"
+            [class.transform]="sectionExpanded.ready" [class.rotate-180]="sectionExpanded.ready" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+
+        <!-- Contenido expandible -->
+        @if (sectionExpanded.ready) {
+        <div class="bg-white p-2">
+          <div class="grid grid-cols-2 gap-2">
+            @let readyItems = getItemsByStatus('Listos para servir');
+            @if (readyItems.length === 0) {
+            <div class="col-span-2 flex flex-col justify-center items-center h-20 text-gray-400 text-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2" />
+              </svg>
+              <span>No hay ítems listos para servir</span>
+            </div>
+            } @else {
+            <!-- En la sección de ítems listos para servir, añadir botón "Servir" -->
+            @for (item of readyItems; track $index + '-' + item.id + '-' + (item.selectedOption || '') + '-' +
+            (item.quantity || '1')) {
+            @let orderBgColor = getOrderColor(item.orderId);
+
+            <div [ngStyle]="{'background-color': orderBgColor, 'border-color': orderBgColor}"
+              class="border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 active:opacity-80"
+              (click)="viewOrderDetails(getOrderById(item.orderId || ''))">
+              <div class="p-3">
+                <!-- Información del ítem -->
+                <div class="flex justify-between items-center border-b border-white border-opacity-30 pb-2">
+                  <div>
+                    <h5 class="font-bold text-gray-900 text-sm">{{ item.quantity }}x {{ item.name }}</h5>
+                    @if (item.selectedOption) {
+                    <p class="text-xs text-gray-600">
+                      {{ item.selectedOption }}
+                    </p>
+                    }
+                  </div>
+                  <span class="text-xs bg-white bg-opacity-30 px-2 py-1 rounded-lg">
+                    Mesa {{ item.tableInfo }}
+                  </span>
+                </div>
+
+                <!-- Cliente y hora -->
+                <div class="mt-2 flex justify-between">
+                  <span class="text-xs text-gray-700 font-medium">{{ item.customerName }}</span>
+                  <span class="text-xs text-gray-600">
+                    {{ item.orderDate | date : "HH:mm" }}
+                  </span>
+                </div>
+
+                <!-- Botones de acción - Solo mostrar botón Servir -->
+                <div class="mt-3">
+                  <!-- Botón de Servir -->
+                  <button (click)="markItemAsServed(item, item.orderId || ''); $event.stopPropagation();"
+                    class="w-full h-10 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 active:bg-indigo-700 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <span class="text-sm">Servir</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+            }
+            }
+          </div>
+        </div>
+        }
+      </div>
+
+      <!-- Sección Servido -->
+      <!-- Sección Servido - Muestra pedidos completos -->
+      <div class="mb-3 rounded-lg overflow-hidden shadow-sm border border-gray-200">
+        <div class="flex items-center bg-indigo-100 px-4 py-3 cursor-pointer" (click)="toggleSection('served')">
+          <div class="w-3 h-3 rounded-full bg-indigo-400 mr-2"></div>
+          <h4 class="font-medium text-indigo-800 text-sm">Servido</h4>
+          <span class="ml-2 bg-indigo-200 text-indigo-800 text-xs font-medium px-2 py-1 rounded-full">
+            {{ getServedOrders().length }}
+          </span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-auto text-indigo-600"
+            [class.transform]="sectionExpanded.served" [class.rotate-180]="sectionExpanded.served" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+
+        <!-- Contenido expandible -->
+        @if (sectionExpanded.served) {
+        <div class="bg-white p-2">
+          <div class="grid grid-cols-2 gap-2">
+            @let servedOrders = getServedOrders();
+            @if (servedOrders.length === 0) {
+            <div class="col-span-2 flex flex-col justify-center items-center h-20 text-gray-400 text-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2" />
+              </svg>
+              <span>No hay pedidos servidos</span>
+            </div>
+            } @else {
+            @for (order of servedOrders; track order.id) {
+            @let orderBgColor = getOrderColor(order.id);
+            <div [ngStyle]="{'background-color': orderBgColor, 'border-color': orderBgColor}"
+              class="border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 active:opacity-80"
+              (click)="viewOrderDetails(order)">
+              <div class="p-3">
+                <!-- Cabecera de la tarjeta -->
+                <div class="flex justify-between items-center border-b border-white border-opacity-30 pb-2">
+                  <div>
+                    <h5 class="font-bold text-gray-900 text-sm">{{ order.customer.name }}</h5>
+                    @if (order.tables) {
+                    <p class="text-xs text-gray-600">
+                      Mesas: {{ order.tables.join(', ') }}
+                    </p>
+                    }
+                  </div>
+                  <span class="text-xs bg-white bg-opacity-30 px-2 py-1 rounded-lg">
+                    {{ order.date | date : "HH:mm" }}
+                  </span>
+                </div>
+
+                <!-- Resumen de platos servidos -->
+                <div class="mt-2">
+                  <div class="flex flex-wrap gap-1">
+                    @for (item of getTopItems(order, 3); track item.id) {
+                    <span class="text-xs px-2 py-1 rounded-full bg-white bg-opacity-30 text-gray-800">
+                      {{ item.quantity }}x {{ item.name }}
+                    </span>
+                    }
+                    @if (order.items.length > 3) {
+                    <span class="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">
+                      +{{ order.items.length - 3 }} más
+                    </span>
+                    }
+                  </div>
+                </div>
+
+                <!-- Botón para cobrar (solo si todos los ítems están servidos) -->
+                @let hasAccessToFinancials = (isAdmin$ | async) || (isCashier$ | async) || (isWaiter$ | async);
+                @let allItemsServed = areAllItemsServed(order);
+                @if (hasAccessToFinancials) {
+                <div class="mt-3">
+                  <button (click)="chargeOrder(order.id); $event.stopPropagation();" [disabled]="!allItemsServed"
+                    class="w-full h-10 flex items-center justify-center rounded-lg" [ngClass]="allItemsServed ? 
+              'bg-teal-500 text-white hover:bg-teal-600 active:bg-teal-700' : 
+              'bg-gray-300 text-gray-500 cursor-not-allowed'">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <span class="text-sm">{{ allItemsServed ? 'Cobrar' : 'Faltan ítems por servir' }}</span>
+                  </button>
+                </div>
+                }
+              </div>
+            </div>
+            }
+            }
+          </div>
+        </div>
+        }
+      </div>
+
+      <!-- Sección Cobrado -->
+      <div class="mb-3 rounded-lg overflow-hidden shadow-sm border border-gray-200">
+        <div class="flex items-center bg-purple-100 px-4 py-3 cursor-pointer" (click)="toggleSection('paid')">
+          <div class="w-3 h-3 rounded-full bg-purple-400 mr-2"></div>
+          <h4 class="font-medium text-purple-800 text-sm">Cobrado</h4>
+          <span class="ml-2 bg-purple-200 text-purple-800 text-xs font-medium px-2 py-1 rounded-full">
+            {{ paidCount }}
+          </span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-auto text-purple-600"
+            [class.transform]="sectionExpanded.paid" [class.rotate-180]="sectionExpanded.paid" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+
+        <!-- Contenido expandible -->
+        @if (sectionExpanded.paid) {
+        <div class="bg-white p-2">
+          <div class="grid grid-cols-2 gap-2">
+            @let paidOrders = getOrdersForDateAndStatus(currentDate.toLocaleDateString(), 'Cobrado');
+            @if (paidOrders.length === 0) {
+            <div class="col-span-2 flex flex-col justify-center items-center h-20 text-gray-400 text-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2" />
+              </svg>
+              <span>No hay pedidos</span>
+            </div>
+            } @else {
+            @for (order of paidOrders; track order.id) {
+            @let orderBgColor = getOrderColor(order.id);
+            <div [ngStyle]="{'background-color': orderBgColor, 'border-color': orderBgColor}"
+              class="border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 active:opacity-80"
+              (click)="viewOrderDetails(order)">
+              <div class="p-3">
+                <!-- Cabecera de la tarjeta -->
+                <div class="flex justify-between items-center border-b border-white border-opacity-30 pb-2">
+                  <div>
+                    <h5 class="font-bold text-gray-900 text-sm">{{ order.customer.name }}</h5>
+                    @if (order.tables) {
+                    <p class="text-xs text-gray-600">
+                      Mesas: {{ order.tables.join(', ') }}
+                    </p>
+                    }
+                  </div>
+                  <span class="text-xs bg-white bg-opacity-30 px-2 py-1 rounded-lg">
+                    {{ order.date | date : "HH:mm" }}
+                  </span>
+                </div>
+
+                <!-- Hora de cobro y total -->
+                @let hasFinancialAccess = (isAdmin$ | async) || (isCashier$ | async) || (isWaiter$ | async);
+                <div class="mt-2 space-y-1">
+                  @if (order.paidAt) {
+                  <div class="flex items-center text-xs text-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Cobrado a las {{ order.paidAt | date : "HH:mm" }}</span>
+                  </div>
+                  }
+
+                  @if (hasFinancialAccess) {
+                  <div class="flex justify-between items-center">
+                    <span class="text-xs text-gray-700">Total:</span>
+                    <span class="text-sm font-semibold text-gray-900">${{ order.total.toFixed(2) }}</span>
+                  </div>
+                  }
+                </div>
+
+                <!-- Método de pago -->
+                @if (order.paymentMethod) {
+                <div class="mt-2 flex items-center">
+                  <span class="text-xs bg-white bg-opacity-30 text-gray-800 px-2 py-1 rounded-full flex items-center">
+                    @switch (order.paymentMethod) {
+                    @case ('cash') {
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <span>Efectivo</span>
+                    }
+                    @case ('card') {
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                    <span>Tarjeta</span>
+                    }
+                    @default {
+                    <span>{{ order.paymentMethod }}</span>
+                    }
+                    }
+                  </span>
+                </div>
+                }
+
+                <!-- Botón de recibo -->
+                @if (hasFinancialAccess) {
+                <div class="mt-3">
+                  <button (click)="printReceipt(order.id); $event.stopPropagation();"
+                    class="w-full h-10 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 active:bg-gray-400 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    <span class="text-sm">Recibo</span>
+                  </button>
+                </div>
+                }
+              </div>
+            </div>
+            }
+            }
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Order Details Modal - Optimizado para tablets con área de contacto mejorada -->
+  @if (selectedOrder) {
+  <div class="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
+    @let orderBgColor = getOrderColor(selectedOrder.id);
+    <div [ngStyle]="{'background-color': orderBgColor}"
+      class="rounded-lg shadow-xl w-full max-w-xl max-h-[90vh] overflow-y-auto">
+      <!-- Header con sticky positioning -->
+      <div [ngStyle]="{'background-color': orderBgColor}"
+        class="sticky top-0 z-10 p-4 border-b border-white border-opacity-30 flex justify-between items-start rounded-t-lg">
+        <h2 class="text-lg font-bold text-gray-900">Detalles del Pedido</h2>
+        <button (click)="closeOrderDetails()"
+          class="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 active:bg-gray-200">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="p-4">
+        <!-- Información del Cliente y Pedido - Layout de 2 columnas -->
+        <div class="grid grid-cols-2 gap-4 mb-5">
+          <div>
+            <h3 class="text-sm font-medium text-gray-500 mb-1">Cliente</h3>
+            <p class="text-base font-semibold">{{ selectedOrder.customer.name }}</p>
+
+            @if ((isAdmin$ | async) || (isCashier$ | async)) {
+            <p class="text-sm text-gray-700 mt-2">
+              <span class="font-medium">ID:</span> {{ selectedOrder.customer.idNumber }}
+            </p>
+            }
+
+            @if (selectedOrder.tables && selectedOrder.tables.length > 0) {
+            <p class="text-sm text-gray-700 mt-2">
+              <span class="font-medium">Mesas:</span> {{ selectedOrder.tables.join(', ') }}
+            </p>
+            }
+          </div>
+
+          <div>
+            <h3 class="text-sm font-medium text-gray-500 mb-1">Información</h3>
+            <p class="text-sm text-gray-700">
+              <span class="font-medium">Fecha:</span><br>
+              {{ selectedOrder.date | date : "dd/MM/yyyy HH:mm" }}
+            </p>
+
+            <div class="flex items-center mt-2">
+              <span class="text-sm font-medium text-gray-700 mr-2">Estado:</span>
+              <span class="inline-block px-2 py-1 rounded-full text-xs font-medium" [ngClass]="{
+                           'bg-yellow-100 text-yellow-800': selectedOrder.status === 'En espera',
+                           'bg-blue-100 text-blue-800': selectedOrder.status === 'En preparación',
+                           'bg-green-100 text-green-800': selectedOrder.status === 'Listos para servir',
+                           'bg-purple-100 text-purple-800': isPaid(selectedOrder)
+                         }">
+                {{ isPaid(selectedOrder) ? 'Cobrado' : selectedOrder.status || 'En espera' }}
+              </span>
+            </div>
+
+            @if (isPaid(selectedOrder)) {
+            <p class="text-sm text-gray-700 mt-2">
+              <span class="font-medium">Cobrado:</span><br>
+              {{ selectedOrder.paidAt | date : "dd/MM/yyyy HH:mm" }}
+            </p>
+            }
+          </div>
+        </div>
+
+        <!-- Lista de Artículos - Mejorada para visualización en tablet -->
+        <div class="mt-5">
+          <h3 class="font-medium text-gray-800 mb-2 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            Artículos
+          </h3>
+          <div class="overflow-y-auto max-h-64 bg-gray-50 rounded-lg shadow-inner">
+            @for (item of selectedOrder.items; track item.id) {
+            <div class="p-4 border-b border-gray-200 last:border-0 hover:bg-gray-100 active:bg-gray-200"
+              [ngClass]="getItemStatusClass(item.status || 'En espera')">
+              <div class="flex justify-between gap-2">
+                <!-- Información del artículo -->
+                <div class="flex-1">
+                  <div class="flex items-start">
+                    <span class="text-sm font-medium text-gray-800 mr-2">{{ item.quantity }}x</span>
+                    <div>
+                      <span class="text-sm font-medium text-gray-800">{{ item.name }}</span>
+                      @if (item.selectedOption) {
+                      <span class="text-xs text-gray-600 block mt-1">
+                        {{ item.selectedOption }}
+                        @if (getOptionPrice(item.selectedOption, item) > 0) {
+                        <span class="text-blue-600">(+${{ getOptionPrice(item.selectedOption, item).toFixed(2)
+                          }})</span>
+                        }
+                      </span>
+                      }
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Precio y estado -->
+                <div class="text-right flex flex-col items-end">
+                  @let hasMoneyAccess = (isAdmin$ | async) || (isCashier$ | async) || (isWaiter$ | async);
+                  @if (hasMoneyAccess) {
+                  <span class="text-sm font-medium">${{ (calculateItemPrice(item) * item.quantity).toFixed(2)
+                    }}</span>
+                  }
+                  <span class="text-xs px-2 py-1 rounded-full mt-1" [ngClass]="{
+                                 'bg-yellow-100 text-yellow-800': (item.status || 'En espera') === 'En espera',
+                                 'bg-blue-100 text-blue-800': (item.status || 'En espera') === 'En preparación',
+                                 'bg-green-100 text-green-800': (item.status || 'En espera') === 'Listos para servir',
+                                 'bg-indigo-100 text-indigo-800': (item.status || 'En espera') === 'Servido'
+                               }">
+                    {{ item.status || 'En espera' }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Botón para categorías especiales - Con mejor visibilidad -->
+              @let hasOrderMgmtAccess = (isAdmin$ | async) || (isWaiter$ | async);
+              @let canMarkAsReady = isSpecialCategory(item) && (item.status || 'En espera') !== 'Listos para servir' &&
+              hasOrderMgmtAccess;
+              @if (canMarkAsReady) {
+              <div class="mt-2 flex justify-end">
+                <button (click)="markItemAsReady(item, selectedOrder.id); $event.stopPropagation();"
+                  class="px-3 py-1.5 bg-green-500 text-white text-xs rounded-full hover:bg-green-600 active:bg-green-700 flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  Marcar como listo
+                </button>
+              </div>
+              }
+            </div>
+            }
+          </div>
+
+          <!-- Total y botones de acción -->
+          @let hasMoneyAccess = (isAdmin$ | async) || (isCashier$ | async) || (isWaiter$ | async);
+          @if (hasMoneyAccess) {
+          <div class="mt-5 flex justify-between items-center p-4 bg-gray-100 rounded-lg">
+            <p class="font-semibold text-gray-700">Total:</p>
+            <p class="text-lg font-bold text-gray-900">${{ selectedOrder.total.toFixed(2) }}</p>
+          </div>
+          }
+
+          <!-- Acciones optimizadas para touch -->
+          @let hasAdminAccess = (isAdmin$ | async);
+          @let hasWaiterAccess = (isWaiter$ | async);
+          @let hasCashierAccess = (isCashier$ | async);
+          @let isPaidOrder = isPaid(selectedOrder);
+          @let canCharge = !isPaidOrder && selectedOrder.status === 'Listos para servir';
+          @let canAddItems = !isPaidOrder;
+          @let canCancel = !isPaidOrder && selectedOrder.status === 'En espera';
+          <div class="mt-5 grid grid-cols-2 gap-3">
+            <!-- Botón de Cobrar: solo visible si el pedido está listo para servir y no ha sido cobrado -->
+            @if (canCharge && (hasAdminAccess || hasCashierAccess || hasWaiterAccess)) {
+            <button (click)="chargeOrder(selectedOrder.id); closeOrderDetails();"
+              class="bg-teal-500 text-white py-3 rounded-lg hover:bg-teal-600 active:bg-teal-700 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              Cobrar
+            </button>
+            }
+
+            <!-- Botón de Añadir Artículos: visible mientras no se haya cobrado el pedido -->
+            @if (canAddItems && (hasAdminAccess || hasWaiterAccess)) {
+            <button (click)="addItemsToOrder(selectedOrder); closeOrderDetails();"
+              class="bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 active:bg-blue-700 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Añadir Artículos
+            </button>
+            }
+
+            <!-- Botón de Cancelar Pedido: solo visible si el pedido está en espera -->
+            @if (canCancel && (hasAdminAccess || hasWaiterAccess)) {
+            <button (click)="cancelOrder(selectedOrder); closeOrderDetails();"
+              class="bg-red-500 text-white py-3 rounded-lg hover:bg-red-600 active:bg-red-700 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Cancelar Pedido
+            </button>
+            }
+
+            <!-- Botón de Cerrar: siempre visible -->
+            <button (click)="closeOrderDetails()"
+              class="bg-gray-200 text-gray-800 py-3 rounded-lg hover:bg-gray-300 active:bg-gray-400 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
 </div>

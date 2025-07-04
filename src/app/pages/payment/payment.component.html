@@ -1,0 +1,480 @@
+<div class="container mx-auto px-4 py-6">
+  <!-- Botón para volver -->
+  <div class="flex justify-start mb-4">
+    <button (click)="goBack()"
+      class="bg-gray-500 text-white rounded-lg py-2 px-4 shadow-md hover:bg-gray-600 flex items-center gap-2">
+      ← Volver
+    </button>
+  </div>
+
+  <h1 class="font-bold text-2xl lg:text-3xl mb-6 text-center text-gray-800">
+    💰 Cobrar Pedido
+  </h1>
+
+  <!-- Pantalla de carga -->
+  @if (loading) {
+    <div class="flex justify-center items-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+    </div>
+  }
+
+  <!-- Mensaje de error -->
+  @if (error) {
+    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4">
+      <p>{{ error }}</p>
+    </div>
+  }
+
+  <!-- Contenido principal -->
+  @if (!loading && !error && order) {
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <!-- Añadir el botón Ver Pagos justo después del estado del pedido -->
+      <div class="mb-6 border-b pb-4">
+        <div class="flex justify-between items-start flex-wrap">
+          <div>
+            <h2 class="font-bold text-xl break-words text-gray-900">
+              {{ order.customer.name }}
+            </h2>
+            <p class="text-sm text-gray-600 break-words">
+              ID: {{ order.customer.idNumber }}
+            </p>
+            @if (order.tables) {
+              <p class="text-sm text-gray-600">
+                Mesas: {{ order.tables.join(', ') }}
+              </p>
+            }
+          </div>
+          <p class="text-sm text-gray-500 whitespace-nowrap">
+            {{ order.date | date : "dd/MM/yyyy HH:mm" }}
+          </p>
+        </div>
+        <div class="mt-2 flex justify-between items-center">
+                <span class="px-2 py-1 rounded-full text-xs font-medium" [ngClass]="{
+            'bg-yellow-100 text-yellow-800': order.status === 'En espera',
+            'bg-blue-100 text-blue-800': order.status === 'En preparación',
+            'bg-green-100 text-green-800': order.status === 'Listos para servir'
+        }">
+            {{ order.status }}
+          </span>
+          <!-- Botón para ver los pagos -->
+          <button (click)="viewPayments()"
+            class="text-blue-500 hover:text-blue-700 text-sm flex items-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              Ver pagos
+            </button>
+          </div>
+        </div>
+        <!-- Calculadora de vuelto -->
+        <!-- Calculadora de vuelto con campos adicionales para métodos de pago -->
+        @if (showChangeCalculator) {
+          <div class="bg-gray-50 p-6 rounded-lg mb-6 border border-gray-200">
+            <h3 class="text-lg font-semibold mb-4">Cálculo de Vuelto</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <div class="mb-4">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Total a pagar:</label>
+                  <div class="text-2xl font-bold text-gray-800">${{ order.total.toFixed(2) }}</div>
+                </div>
+                <!-- Selector de método de pago -->
+                <div class="mb-4">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Método de pago:</label>
+                  <select [(ngModel)]="paymentMethod"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    @for (method of paymentMethods; track method) {
+                      <option [value]="method">{{ method }}</option>
+                    }
+                  </select>
+                </div>
+                <!-- Campos específicos según el método de pago -->
+                <!-- Para Efectivo -->
+                @if (paymentMethod === 'Efectivo') {
+                  <div>
+                    <div class="mb-4">
+                      <label for="amountReceived" class="block text-sm font-medium text-gray-700 mb-1">Monto
+                      recibido:</label>
+                      <input type="number" id="amountReceived" [(ngModel)]="amountReceived"
+                        (ngModelChange)="calculateChange()"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        min="0" step="0.01">
+                      </div>
+                      <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Cambio a entregar:</label>
+                        <div class="text-2xl font-bold"
+                          [ngClass]="{'text-green-600': change > 0, 'text-red-600': amountReceived < order.total}">
+                          ${{ change.toFixed(2) }}
+                        </div>
+                        @if (amountReceived < order.total) {
+                          <p class="text-red-500 text-sm mt-1">
+                            El monto recibido es menor que el total a pagar
+                          </p>
+                        }
+                      </div>
+                    </div>
+                  }
+                  <!-- Para Transferencia -->
+                  @if (paymentMethod === 'Transferencia') {
+                    <div class="space-y-4">
+                      <div>
+                        <label for="bankName" class="block text-sm font-medium text-gray-700 mb-1">Banco:</label>
+                        <input type="text" id="bankName" [(ngModel)]="bankName"
+                          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="Nombre del banco">
+                        </div>
+                        <div>
+                          <label for="transactionCode" class="block text-sm font-medium text-gray-700 mb-1">Código de
+                          transacción:</label>
+                          <input type="text" id="transactionCode" [(ngModel)]="transactionCode"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Código de la transferencia">
+                          </div>
+                        </div>
+                      }
+                      <!-- Para Ahorita -->
+                      @if (paymentMethod === 'Ahorita') {
+                        <div class="space-y-4">
+                          <div>
+                            <label for="ahoritaCode" class="block text-sm font-medium text-gray-700 mb-1">Código de
+                            transacción:</label>
+                            <input type="text" id="ahoritaCode" [(ngModel)]="transactionCode"
+                              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="Código de Ahorita">
+                            </div>
+                          </div>
+                        }
+                        <!-- Para De una -->
+                        @if (paymentMethod === 'De una') {
+                          <div class="space-y-4">
+                            <div>
+                              <label for="deunaCode" class="block text-sm font-medium text-gray-700 mb-1">Código de
+                              transacción:</label>
+                              <input type="text" id="deunaCode" [(ngModel)]="transactionCode"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Código de De una">
+                              </div>
+                            </div>
+                          }
+                        </div>
+                        <!-- Atajos rápidos solo para efectivo -->
+                        @if (paymentMethod === 'Efectivo') {
+                          <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Atajos rápidos:</label>
+                            <div class="grid grid-cols-2 gap-2">
+                              <button (click)="setQuickAmount(order.total)"
+                                class="bg-gray-200 hover:bg-gray-300 py-2 rounded">
+                                Monto exacto
+                              </button>
+                              <button (click)="setQuickAmount(Math.ceil(order.total))"
+                                class="bg-gray-200 hover:bg-gray-300 py-2 rounded">
+                                Redondear arriba
+                              </button>
+                              <button (click)="setQuickAmount(5 * Math.ceil(order.total / 5))"
+                                class="bg-gray-200 hover:bg-gray-300 py-2 rounded">
+                                Billete de $5
+                              </button>
+                              <button (click)="setQuickAmount(10 * Math.ceil(order.total / 10))"
+                                class="bg-gray-200 hover:bg-gray-300 py-2 rounded">
+                                Billete de $10
+                              </button>
+                              <button (click)="setQuickAmount(20 * Math.ceil(order.total / 20))"
+                                class="bg-gray-200 hover:bg-gray-300 py-2 rounded">
+                                Billete de $20
+                              </button>
+                              <button (click)="setQuickAmount(50 * Math.ceil(order.total / 50))"
+                                class="bg-gray-200 hover:bg-gray-300 py-2 rounded">
+                                Billete de $50
+                              </button>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                      <div class="flex justify-between mt-6">
+                        <button (click)="cancelChangeCalculator()"
+                          class="bg-gray-500 text-white py-2 px-6 rounded hover:bg-gray-600">
+                          Cancelar
+                        </button>
+                <button (click)="confirmPayment()" [disabled]="(paymentMethod === 'Efectivo' && amountReceived < order.total) || 
+                      (paymentMethod === 'Transferencia' && (!bankName || !transactionCode)) ||
+                      ((paymentMethod === 'Ahorita' || paymentMethod === 'De una') && !transactionCode)"
+                          [ngClass]="{'bg-green-500 hover:bg-green-600': isPaymentFormValid(), 'bg-gray-400 cursor-not-allowed': !isPaymentFormValid()}"
+                          class="text-white py-2 px-6 rounded">
+                          Confirmar Pago
+                        </button>
+                      </div>
+                    </div>
+                  }
+                  <!-- Modo de pago completo -->
+                  @if (!isSplittingBill && !showChangeCalculator) {
+                    <div>
+                      <h3 class="text-lg font-semibold mb-4">Detalle del Pedido</h3>
+                      <!-- Lista de artículos -->
+                      <div class="space-y-2 mb-6">
+                        @for (item of order.items; track item) {
+                          <div class="p-3 rounded-md flex justify-between items-center border-b"
+                    [ngClass]="{
+              'bg-green-50': item.status === 'Listos para servir',
+              'bg-white': item.status !== 'Listos para servir'
+            }">
+                            <div>
+                              <span class="text-sm font-medium text-gray-700">
+                                {{ item.quantity }}x {{ item.name }}
+                                @if (item.selectedOption) {
+                                  <span class="text-gray-500">
+                                    ({{ item.selectedOption }})
+                                  </span>
+                                }
+                              </span>
+                            </div>
+                            <div class="text-right">
+                              <p class="text-sm font-medium">${{ (item.quantity * item.price).toFixed(2) }}</p>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                      <!-- Total y botones de acción -->
+                      <div class="flex justify-between items-center py-4 border-t border-b mb-6">
+                        <p class="font-bold text-lg text-gray-800">Total:</p>
+                        <p class="text-xl font-bold text-gray-800">${{ order.total.toFixed(2) }}</p>
+                      </div>
+                      <div class="flex gap-4 justify-center">
+                        <button (click)="processFullPayment()"
+                          class="bg-green-500 text-white py-3 px-6 rounded-lg hover:bg-green-600 flex items-center justify-center gap-2 flex-1">
+                          <span>💰</span> Cobrar Completo
+                        </button>
+                        <button (click)="startSplitBill()"
+                          class="bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 flex items-center justify-center gap-2 flex-1">
+                          <span>✂️</span> Dividir Cuenta
+                        </button>
+                      </div>
+                    </div>
+                  }
+                  <!-- Modo de división de cuenta -->
+                  @if (isSplittingBill) {
+                    <div>
+                      <h3 class="text-lg font-semibold mb-4">Dividir Cuenta</h3>
+                      <!-- Selector de modo de división -->
+                      <div class="mb-6 bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-medium text-gray-700 mb-3">Selecciona cómo quieres dividir la cuenta:</h4>
+                        <div class="flex gap-3">
+                          <button (click)="changeSplitMode('items')" class="px-4 py-2 rounded-lg flex-1"
+                            [ngClass]="{'bg-blue-500 text-white': splitMode === 'items', 'bg-gray-200 text-gray-700': splitMode !== 'items'}">
+                            <div class="flex flex-col items-center">
+                              <span class="text-lg mb-1">✂️</span>
+                              <span class="font-medium">Por Platos</span>
+                              <span class="text-xs"
+                                [ngClass]="{'text-blue-100': splitMode === 'items', 'text-gray-500': splitMode !== 'items'}">
+                                Asignar platos específicos
+                              </span>
+                            </div>
+                          </button>
+                          <button (click)="changeSplitMode('equal')" class="px-4 py-2 rounded-lg flex-1"
+                            [ngClass]="{'bg-blue-500 text-white': splitMode === 'equal', 'bg-gray-200 text-gray-700': splitMode !== 'equal'}">
+                            <div class="flex flex-col items-center">
+                              <span class="text-lg mb-1">🔄</span>
+                              <span class="font-medium">Reparto Equitativo</span>
+                              <span class="text-xs"
+                                [ngClass]="{'text-blue-100': splitMode === 'equal', 'text-gray-500': splitMode !== 'equal'}">
+                                Dividir el total entre personas
+                              </span>
+                            </div>
+                          </button>
+                        </div>
+                      </div>
+                      <!-- Selector de número de partes -->
+                      <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Número de personas:</label>
+                        <div class="flex items-center">
+                          <button (click)="numberOfParts = Math.max(2, numberOfParts - 1); initializeSplitParts()"
+                          class="bg-gray-200 px-3 py-1 rounded-l hover:bg-gray-300">-</button>
+                          <span class="px-4 py-1 bg-gray-100 text-center">{{ numberOfParts }}</span>
+                          <button (click)="numberOfParts = Math.min(10, numberOfParts + 1); initializeSplitParts()"
+                          class="bg-gray-200 px-3 py-1 rounded-r hover:bg-gray-300">+</button>
+                        </div>
+                      </div>
+                      <!-- Contenedor para división equitativa -->
+                      @if (splitMode === 'equal') {
+                        <div class="bg-white border rounded-lg p-4 mb-6">
+                          <h4 class="font-medium text-gray-800 mb-3">Monto por persona:</h4>
+                          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                              <div class="text-center mb-4">
+                                <p class="text-sm text-gray-500">Total a dividir</p>
+                                <p class="text-2xl font-bold text-gray-800">${{ order.total.toFixed(2) }}</p>
+                              </div>
+                              <div class="text-center">
+                                <p class="text-sm text-gray-500">Monto por persona</p>
+                                <p class="text-2xl font-bold text-blue-600">${{ (order.total / numberOfParts).toFixed(2) }}
+                                </p>
+                              </div>
+                            </div>
+                            <div class="space-y-3">
+                              @for (part of splitParts; track part; let i = $index) {
+                                <div
+                                  class="flex justify-between items-center p-3 rounded-lg border"
+                                  [ngClass]="{'bg-green-50 border-green-200': part.total === 0, 'bg-white': part.total > 0}">
+                                  <div>
+                                    <input [(ngModel)]="part.name"
+                                      class="border-b border-gray-300 bg-transparent focus:outline-none focus:border-blue-500 px-1">
+                                      <p class="text-sm">
+                                        @if (part.total > 0) {
+                                          <span class="font-medium">
+                                            ${{ part.total.toFixed(2) }}
+                                          </span>
+                                        }
+                                        @if (part.total === 0) {
+                                          <span class="text-green-600 font-medium">
+                                            Pagado
+                                          </span>
+                                        }
+                                      </p>
+                                    </div>
+                                    @if (part.total > 0) {
+                                      <button (click)="processSplitPayment(i)"
+                                        class="bg-green-500 text-white py-1 px-3 rounded hover:bg-green-600 text-sm">
+                                        Cobrar
+                                      </button>
+                                    }
+                                  </div>
+                                }
+                              </div>
+                            </div>
+                          </div>
+                        }
+                        <!-- Contenedor de división por items -->
+                        @if (splitMode === 'items') {
+                          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <!-- Columna de items sin asignar -->
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                              <h4 class="font-medium mb-3 text-gray-700">Items sin asignar</h4>
+                              <div class="space-y-2 max-h-96 overflow-y-auto">
+                                @for (item of unassignedItems; track item) {
+                                  <div
+                                    class="p-3 bg-white rounded-md shadow-sm flex justify-between items-center">
+                                    <div>
+                                      <p class="text-sm font-medium">
+                                        {{ item.name }}
+                                        @if (item.selectedOption) {
+                                          <span class="text-gray-500">
+                                            ({{ item.selectedOption }})
+                                          </span>
+                                        }
+                                        <!-- Mostrar indicador para items divididos -->
+                                        @if (item.originalId) {
+                                          <span
+                                            class="ml-1 text-xs bg-blue-100 text-blue-700 px-1 py-0.5 rounded">
+                                            Unidad individual
+                                          </span>
+                                        }
+                                      </p>
+                                      <p class="text-xs text-gray-500">${{ (item.price).toFixed(2) }}</p>
+                                    </div>
+                                    <button (click)="showAssignMenu(item)"
+                                      class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
+                                      Asignar
+                                    </button>
+                                  </div>
+                                }
+                                @if (unassignedItems.length === 0) {
+                                  <div class="text-center py-4 text-gray-500">
+                                    Todos los items han sido asignados
+                                  </div>
+                                }
+                              </div>
+                            </div>
+                            <!-- Columna de partes -->
+                            <div>
+                              @for (part of splitParts; track part; let i = $index) {
+                                <div class="mb-4 bg-white p-4 rounded-lg shadow-sm">
+                                  <div class="flex justify-between items-center mb-2">
+                                    <div class="flex items-center">
+                                      <input [(ngModel)]="part.name"
+                                        class="border-b border-gray-300 bg-transparent focus:outline-none focus:border-blue-500 px-1">
+                                      </div>
+                                      <p class="font-bold">${{ part.total.toFixed(2) }}</p>
+                                    </div>
+                                    <div class="space-y-2 max-h-40 overflow-y-auto">
+                                      @for (item of part.items; track item; let j = $index) {
+                                        <div
+                                          class="p-2 bg-gray-50 rounded flex justify-between items-center">
+                                          <span class="text-sm">
+                                            {{ item.name }}
+                                            @if (item.selectedOption) {
+                                              <span class="text-gray-500">
+                                                ({{ item.selectedOption }})
+                                              </span>
+                                            }
+                                            <!-- Mostrar indicador para items divididos -->
+                                            @if (item.originalId) {
+                                              <span
+                                                class="ml-1 text-xs bg-blue-100 text-blue-700 px-1 py-0.5 rounded">
+                                                Unidad individual
+                                              </span>
+                                            }
+                                          </span>
+                                          <div class="flex items-center gap-2">
+                                            <span class="text-sm">${{ (item.price).toFixed(2) }}</span>
+                                            <button (click)="removeItemFromPart(i, j)" class="text-red-500 hover:text-red-700">
+                                              ✕
+                                            </button>
+                                          </div>
+                                        </div>
+                                      }
+                                      @if (part.items.length === 0) {
+                                        <div class="text-center py-2 text-gray-500 text-sm">
+                                          Sin items asignados
+                                        </div>
+                                      }
+                                    </div>
+                                    @if (part.items.length > 0) {
+                                      <button (click)="processSplitPayment(i)"
+                                        class="mt-3 w-full bg-green-500 text-white py-2 rounded hover:bg-green-600 text-sm">
+                                        Cobrar a {{ part.name }}
+                                      </button>
+                                    }
+                                  </div>
+                                }
+                              </div>
+                            </div>
+                          }
+                          <!-- Botones de acción para división -->
+                          <div class="flex justify-between mt-6">
+                            <button (click)="cancelSplitBill()" class="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600">
+                              Cancelar División
+                            </button>
+                            <button (click)="finalizeSplitBill()"
+                              class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">
+                              Finalizar Todo
+                            </button>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
+
+                  <!-- Menú flotante para asignar items -->
+                  @if (showAssignmentMenu && selectedItemForAssignment) {
+                    <div
+                      class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50" (click)="hideAssignMenu()">
+                      <div class="bg-white rounded-lg shadow-xl p-4 max-w-xs w-full" (click)="$event.stopPropagation()">
+                        <h4 class="font-medium mb-2 text-gray-800">Asignar a:</h4>
+                        <div class="space-y-2">
+                          @for (part of splitParts; track part; let i = $index) {
+                            <button
+                              (click)="assignItemToPart(selectedItemForAssignment, i)"
+                              class="w-full text-left px-4 py-2 hover:bg-gray-100 rounded transition-colors">
+                              {{ part.name }}
+                            </button>
+                          }
+                        </div>
+                        <div class="mt-4 text-right">
+                          <button (click)="hideAssignMenu()" class="text-gray-500 hover:text-gray-700">
+                            Cancelar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
