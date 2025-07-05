@@ -1,0 +1,512 @@
+<div class="container mx-auto p-2 sm:p-4">
+    <!-- Header Section -->
+    <div class="mb-4 sm:mb-6">
+        <h1 class="text-xl sm:text-2xl font-bold text-gray-800 mb-1 sm:mb-2">Caja Registradora</h1>
+        @if (loading) {
+        <p class="text-sm text-gray-600">Cargando información de caja...</p>
+        }
+    </div>
+
+    <!-- Main Content (only shown when not loading) -->
+    @if (!loading) {
+    <!-- Expander para apertura de caja (solo visible cuando no hay caja abierta) -->
+    @if (!isRegisterOpen) {
+    <div class="bg-white rounded-lg shadow mb-4 sm:mb-6">
+        <!-- Expander Header -->
+        <div class="p-3 sm:p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50"
+            (click)="toggleOpenForm()">
+            <h2 class="text-lg sm:text-xl font-semibold text-teal-600 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                        clip-rule="evenodd" />
+                </svg>
+                Abrir Nueva Caja
+            </h2>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform transition-transform duration-200"
+                [class.rotate-180]="showOpenForm" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clip-rule="evenodd" />
+            </svg>
+        </div>
+
+        <!-- Expander Content -->
+        @if (showOpenForm) {
+        <div class="p-3 sm:p-6 border-t">
+            <form [formGroup]="openForm" (ngSubmit)="openCashRegister()">
+                <!-- Denomination Details Section -->
+                <div class="mb-4 sm:mb-6">
+                    <h3 class="text-base sm:text-lg font-medium text-gray-700 mb-2">Arqueo Inicial de Caja</h3>
+                    <p class="text-xs sm:text-sm text-gray-500 mb-3">Ingresa la cantidad de cada denominación para el
+                        monto inicial</p>
+
+                    <!-- Denomination Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
+                        @for (denom of denominaciones; track $index) {
+                        <div class="border p-2 sm:p-3 rounded shadow-sm hover:shadow-md transition-all">
+                            <div class="flex justify-between items-center mb-1 sm:mb-2">
+                                <span class="text-sm font-medium">{{denom.etiqueta}}</span>
+                                <span class="text-xs text-gray-500">{{denom.tipo === 'bill' ? 'Billete' :
+                                    'Moneda'}}</span>
+                            </div>
+                            <div class="flex items-center">
+                                <button type="button"
+                                    class="w-8 h-8 bg-gray-200 rounded-l flex items-center justify-center qty-control hover:bg-gray-300 active:bg-gray-400"
+                                    (click)="updateDenominationDetail($index, detallesApertura[$index].count - 1)">
+                                    -
+                                </button>
+                                <input type="number"
+                                    class="w-12 sm:w-16 h-8 border text-center text-sm denomination-input focus:ring-2 focus:ring-teal-300 focus:border-teal-500 transition-all"
+                                    [value]="detallesApertura[$index].count"
+                                    (input)="updateDenominationDetail($index, $any($event.target).value)">
+                                <button type="button"
+                                    class="w-8 h-8 bg-gray-200 rounded-r flex items-center justify-center qty-control hover:bg-gray-300 active:bg-gray-400"
+                                    (click)="updateDenominationDetail($index, detallesApertura[$index].count + 1)">
+                                    +
+                                </button>
+                                <span class="ml-2 sm:ml-4 text-sm amount">$ {{detallesApertura[$index].subtotal |
+                                    number:'1.2-2'}}</span>
+                            </div>
+                        </div>
+                        }
+                    </div>
+
+                    <!-- Total Display -->
+                    <div class="mt-3 sm:mt-4 p-3 bg-gray-50 rounded-lg shadow-inner">
+                        <div class="flex justify-between items-center">
+                            <span class="font-semibold text-sm sm:text-base">Total Inicial:</span>
+                            <span class="text-lg sm:text-xl font-bold text-teal-600 amount">$ {{totalApertura |
+                                number:'1.2-2'}}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes Section -->
+                <div class="mb-4 sm:mb-6">
+                    <label for="notes" class="block mb-1 sm:mb-2 text-xs sm:text-sm font-medium text-gray-700">Notas
+                        (opcional)</label>
+                    <textarea id="notes" formControlName="notes" rows="2"
+                        class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-teal-300 focus:border-teal-500"
+                        placeholder="Agregar notas o comentarios sobre la apertura de caja"></textarea>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex justify-center sm:justify-end">
+                    <button type="submit"
+                        class="w-full sm:w-auto px-4 sm:px-6 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 active:bg-teal-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm sm:text-base transition-all shadow hover:shadow-md"
+                        [disabled]="openForm.invalid || totalApertura <= 0 || !validateAllDenominations()">
+                        <span class="flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Abrir Caja
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+        }
+    </div>
+    }
+
+    <!-- Open Register View (cuando la caja está abierta) -->
+    @if (isRegisterOpen) {
+    <div class="bg-white rounded-lg shadow p-3 sm:p-6 mb-4 sm:mb-6">
+        <!-- Register Status Header -->
+        <div class="flex justify-between items-center mb-3 sm:mb-4">
+            <h2 class="text-lg sm:text-xl font-semibold text-teal-600">Caja Abierta</h2>
+            <span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">Activa</span>
+        </div>
+
+        <!-- Register Summary Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4 mb-4">
+            <div class="bg-gray-50 p-3 rounded-lg shadow-sm hover:shadow transition-all">
+                <p class="text-xs sm:text-sm text-gray-500">Monto Inicial</p>
+                <p class="text-lg sm:text-xl font-semibold">$ {{currentRegister?.initialAmount | number:'1.2-2'}}</p>
+            </div>
+            <div class="bg-gray-50 p-3 rounded-lg shadow-sm hover:shadow transition-all">
+                <p class="text-xs sm:text-sm text-gray-500">Monto Actual</p>
+                <p class="text-lg sm:text-xl font-semibold">$ {{currentRegister?.currentAmount | number:'1.2-2'}}</p>
+            </div>
+            <div class="bg-gray-50 p-3 rounded-lg shadow-sm hover:shadow transition-all">
+                <p class="text-xs sm:text-sm text-gray-500">Transacciones</p>
+                <p class="text-lg sm:text-xl font-semibold">{{currentRegister?.transactions?.length || 0}}</p>
+            </div>
+        </div>
+
+        <!-- Quick Transaction Form -->
+        <div class="mb-4 sm:mb-6 border rounded-lg p-3 sm:p-4 hover:shadow-md transition-all">
+            <h3 class="text-base sm:text-lg font-medium text-gray-700 mb-2 sm:mb-3 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-teal-500" viewBox="0 0 20 20"
+                    fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
+                        clip-rule="evenodd" />
+                </svg>
+                Registrar Transacción
+            </h3>
+
+            <form [formGroup]="transactionForm" (ngSubmit)="registerTransaction()">
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+                    <div>
+                        <label class="block text-xs sm:text-sm font-medium mb-1 text-gray-700">Tipo</label>
+                        <select formControlName="type"
+                            class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-teal-300 focus:border-teal-500 transition-all">
+                            <option value="income">Ingreso</option>
+                            <option value="expense">Gasto</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs sm:text-sm font-medium mb-1 text-gray-700">Monto ($)</label>
+                        <input type="number" formControlName="amount"
+                            class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-teal-300 focus:border-teal-500 transition-all"
+                            min="0" step="0.01">
+                        @if (transactionForm.get('amount')?.invalid && transactionForm.get('amount')?.touched) {
+                        <p class="text-xs text-red-500 mt-1">Ingrese un monto válido</p>
+                        }
+                    </div>
+
+                    <div>
+                        <label class="block text-xs sm:text-sm font-medium mb-1 text-gray-700">Descripción</label>
+                        <input type="text" formControlName="description"
+                            class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-teal-300 focus:border-teal-500 transition-all"
+                            placeholder="Motivo">
+                        @if (transactionForm.get('description')?.invalid && transactionForm.get('description')?.touched)
+                        {
+                        <p class="text-xs text-red-500 mt-1">Descripción requerida</p>
+                        }
+                    </div>
+                </div>
+
+                <div class="mt-3 flex justify-end">
+                    <button type="submit"
+                        class="px-4 py-2 bg-teal-500 text-white text-sm rounded-lg hover:bg-teal-600 active:bg-teal-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all shadow hover:shadow-md"
+                        [disabled]="transactionForm.invalid">
+                        <span class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Registrar
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+            <button type="button" (click)="showTransactionDialog()"
+                class="px-3 py-2 text-sm bg-teal-500 text-white rounded-lg hover:bg-teal-600 active:bg-teal-700 transition shadow hover:shadow-md flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                    <path fill-rule="evenodd"
+                        d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                        clip-rule="evenodd" />
+                </svg>
+                <span>Operaciones</span>
+            </button>
+            <button type="button" (click)="showTransactions()"
+                class="px-3 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 active:bg-blue-700 transition shadow hover:shadow-md flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+                        clip-rule="evenodd" />
+                </svg>
+                <span>Transacciones</span>
+            </button>
+            <button type="button" (click)="showSummary()"
+                class="px-3 py-2 text-sm bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 active:bg-indigo-700 transition shadow hover:shadow-md flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z" />
+                    <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z" />
+                </svg>
+                <span>Resumen</span>
+            </button>
+            <button type="button" (click)="loadHistoryData()"
+                class="px-3 py-2 text-sm bg-purple-500 text-white rounded-lg hover:bg-purple-600 active:bg-purple-700 transition shadow hover:shadow-md flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                        clip-rule="evenodd" />
+                </svg>
+                <span>Historial</span>
+            </button>
+            <button type="button" (click)="closeCashRegister()"
+                class="px-3 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 active:bg-red-700 transition shadow hover:shadow-md flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                        clip-rule="evenodd" />
+                </svg>
+                <span>Cerrar</span>
+            </button>
+        </div>
+    </div>
+    }
+
+    <!-- Historial de Cierres -->
+    <div class="bg-white rounded-lg shadow p-3 sm:p-6 mb-4 sm:mb-6">
+        <div class="flex justify-between items-center mb-3 sm:mb-4">
+            <h2 class="text-lg sm:text-xl font-semibold text-purple-600 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                        clip-rule="evenodd" />
+                </svg>
+                Historial de Cierres de Caja
+            </h2>
+            <button (click)="loadHistoryData()" class="text-purple-500 hover:text-purple-700 flex items-center text-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                        clip-rule="evenodd" />
+                </svg>
+                Actualizar
+            </button>
+        </div>
+
+        @if (loadingHistory) {
+        <div class="flex justify-center items-center p-6">
+            <svg class="animate-spin h-8 w-8 text-purple-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                </path>
+            </svg>
+        </div>
+        } @else if (closedRegisters.length === 0) {
+        <div class="text-center p-6 bg-gray-50 rounded-lg">
+            <p class="text-gray-500">No hay registros de cierres de caja anteriores</p>
+        </div>
+        } @else {
+        <!-- Selector de visualización: Lista o Detalles -->
+        @if (!selectedRegister) {
+        <!-- Lista de cierres -->
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm border-collapse">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="p-2 text-left">Fecha</th>
+                        <th class="p-2 text-right">Monto Inicial</th>
+                        <th class="p-2 text-right">Monto Final</th>
+                        <th class="p-2 text-right">Diferencia</th>
+                        <th class="p-2 text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (register of closedRegisters; track register.id) {
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-3">
+                            <div class="font-medium">{{getFormattedDate(register.openedAt)}}</div>
+                            <div class="text-xs text-gray-500">Cierre: {{getFormattedDate(register.closedAt ??
+                                undefined)}}</div>
+                        </td>
+                        <td class="p-3 text-right">${{register.initialAmount.toFixed(2)}}</td>
+                        <td class="p-3 text-right">${{(register.finalAmount || 0).toFixed(2)}}</td>
+                        <td class="p-3 text-right"
+                            [class]="(register.difference || 0) >= 0 ? 'text-green-600' : 'text-red-600'">
+                            {{(register.difference || 0) >= 0 ? '+' : ''}}\${{Math.abs(register.difference ||
+                            0).toFixed(2)}}
+                        </td>
+                        <td class="p-3 text-center">
+                            <button (click)="viewRegisterDetails(register.id!)"
+                                class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs">
+                                Ver Detalles
+                            </button>
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        } @else {
+        <!-- Detalles de un cierre específico -->
+        <div class="mb-3">
+            <button (click)="backToHistoryList()" class="text-blue-500 hover:text-blue-700 flex items-center text-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+                        clip-rule="evenodd" />
+                </svg>
+                Volver al Listado
+            </button>
+        </div>
+        <!-- Sección de métodos de pago -->
+        <div class="mb-4">
+            <h3 class="text-base font-medium mb-2 text-gray-700">Métodos de Pago</h3>
+            <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                <div class="bg-gray-50 p-3 rounded shadow-sm">
+                    <p class="text-xs text-gray-500">Efectivo</p>
+                    <p class="text-base font-medium text-blue-600">${{registerStats.paymentMethods.efectivo.toFixed(2)
+                        || '0.00'}}</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded shadow-sm">
+                    <p class="text-xs text-gray-500">Transferencia</p>
+                    <p class="text-base font-medium text-blue-600">
+                        ${{registerStats.paymentMethods.transferencia.toFixed(2) || '0.00'}}</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded shadow-sm">
+                    <p class="text-xs text-gray-500">Ahorita</p>
+                    <p class="text-base font-medium text-blue-600">${{registerStats.paymentMethods.ahorita.toFixed(2)
+                        || '0.00'}}</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded shadow-sm">
+                    <p class="text-xs text-gray-500">De Una</p>
+                    <p class="text-base font-medium text-blue-600">${{registerStats.paymentMethods.deUna.toFixed(2) ||
+                        '0.00'}}</p>
+                </div>
+            </div>
+        </div>
+        <div class="p-2">
+            <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-gray-50 p-3 rounded shadow-sm">
+                    <p class="text-xs text-gray-500">Apertura</p>
+                    <p class="text-sm font-medium">{{getFormattedDateTime(selectedRegister.openedAt)}}</p>
+                    <p class="text-xs text-gray-600 mt-1">Por: {{selectedRegister.openedBy.name || 'Desconocido'}}</p>
+                </div>
+
+                <div class="bg-gray-50 p-3 rounded shadow-sm">
+                    <p class="text-xs text-gray-500">Cierre</p>
+                    <p class="text-sm font-medium">{{selectedRegister.closedAt ?
+                        getFormattedDateTime(selectedRegister.closedAt) : '-'}}</p>
+                    <p class="text-xs text-gray-600 mt-1">Por: {{selectedRegister.closedBy?.name || '-'}}</p>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h3 class="text-base font-medium mb-2 text-gray-700">Resumen Financiero</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div class="bg-gray-50 p-3 rounded shadow-sm text-center">
+                        <p class="text-xs text-gray-500">Monto Inicial</p>
+                        <p class="text-lg font-bold text-gray-800">${{selectedRegister.initialAmount.toFixed(2)}}</p>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded shadow-sm text-center">
+                        <p class="text-xs text-gray-500">Monto Final</p>
+                        <p class="text-lg font-bold text-gray-800">${{(selectedRegister.finalAmount || 0).toFixed(2)}}
+                        </p>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded shadow-sm text-center">
+                        <p class="text-xs text-gray-500">Diferencia</p>
+                        <p class="text-lg font-bold"
+                            [class]="(selectedRegister.difference || 0) >= 0 ? 'text-green-600' : 'text-red-600'">
+                            {{(selectedRegister.difference || 0) >= 0 ? '+' :
+                            ''}}\${{Math.abs(selectedRegister.difference || 0).toFixed(2)}}
+                        </p>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded shadow-sm text-center">
+                        <p class="text-xs text-gray-500">Transacciones</p>
+                        <p class="text-lg font-bold text-gray-800">{{selectedRegister.transactions.length || 0}}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h3 class="text-base font-medium mb-2 text-gray-700">Detalle de Transacciones</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div class="bg-gray-50 p-3 rounded shadow-sm">
+                        <p class="text-xs text-gray-500">Pagos Recibidos</p>
+                        <p class="text-base font-medium text-green-600">${{registerStats.payments.toFixed(2)}}</p>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded shadow-sm">
+                        <p class="text-xs text-gray-500">Ingresos Adicionales</p>
+                        <p class="text-base font-medium text-green-600">${{registerStats.incomes.toFixed(2)}}</p>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded shadow-sm">
+                        <p class="text-xs text-gray-500">Gastos</p>
+                        <p class="text-base font-medium text-red-600">${{registerStats.expenses.toFixed(2)}}</p>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded shadow-sm">
+                        <p class="text-xs text-gray-500">Reembolsos</p>
+                        <p class="text-base font-medium text-orange-600">${{registerStats.refunds.toFixed(2)}}</p>
+                    </div>
+                </div>
+            </div>
+
+            @if (selectedRegister.notes) {
+            <div class="mb-4">
+                <h3 class="text-base font-medium mb-2 text-gray-700">Notas</h3>
+                <div class="bg-gray-50 p-3 rounded shadow-sm">
+                    <p class="text-sm">{{selectedRegister.notes}}</p>
+                </div>
+            </div>
+            }
+
+            @if (selectedRegister.transactions && selectedRegister.transactions.length > 0) {
+            <div>
+                <h3 class="text-base font-medium mb-2 text-gray-700">Lista de Transacciones</h3>
+                <div class="bg-gray-50 rounded shadow-sm overflow-hidden">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="p-2 text-left">Tipo</th>
+                                <th class="p-2 text-right">Monto</th>
+                                <th class="p-2 text-left">Descripción</th>
+                                <th class="p-2 text-right">Hora</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (trans of selectedRegister.transactions; track $index) {
+                            <tr class="border-b hover:bg-gray-100">
+                                <td class="p-2" [class]="getTransactionTypeClass(trans.type)">
+                                    {{getTransactionTypeLabel(trans.type)}}
+                                </td>
+                                <td class="p-2 text-right"
+                                    [class]="trans.amount >= 0 ? 'text-green-600' : 'text-red-600'">
+                                    ${{Math.abs(trans.amount).toFixed(2)}}
+                                </td>
+                                <td class="p-2 text-left">{{trans.description}}</td>
+                                <td class="p-2 text-right text-xs">{{getFormattedTime(trans.timestamp)}}</td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            } @else {
+            <div class="text-center p-4 bg-gray-50 rounded-lg">
+                <p class="text-gray-500">No hay transacciones registradas en este cierre</p>
+            </div>
+            }
+        </div>
+        }
+        }
+    </div>
+    }
+
+    <!-- Loading Overlay -->
+    @if (loading) {
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg">
+            <div class="flex items-center">
+                <svg class="animate-spin h-5 w-5 sm:h-6 sm:w-6 text-teal-600 mr-3" xmlns="http://www.w3.org/2000/svg"
+                    fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
+                <span class="text-gray-700">Procesando...</span>
+            </div>
+        </div>
+    </div>
+    }
+</div>
+<button type="button" (click)="syncOrdersWithCashRegister()"
+    class="px-3 py-2 text-sm bg-amber-500 text-white rounded-lg hover:bg-amber-600 active:bg-amber-700 transition shadow hover:shadow-md flex items-center justify-center"
+    [disabled]="isSyncing">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd"
+            d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+            clip-rule="evenodd" />
+    </svg>
+    <span>Sincronizar</span>
+</button>

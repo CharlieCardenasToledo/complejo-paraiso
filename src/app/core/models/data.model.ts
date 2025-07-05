@@ -1,7 +1,7 @@
 // data.interface.ts - Archivo centralizado de interfaces para la aplicación
 
-import { UserRole } from "../core/services/auth.service";
-
+import { Timestamp } from "@angular/fire/firestore";
+import { UserRole } from "../../core/services/auth.service";
 
 
 /**
@@ -148,8 +148,8 @@ export interface UserData {
     role?: UserRole;
     active?: boolean;
     phone?: string;
-    createdAt?: any;
-    lastLogin?: any;
+    createdAt?: Timestamp | Date;
+    lastLogin?: Timestamp | Date;
     permissions?: string[];
 }
 export interface InventoryBalance {

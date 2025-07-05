@@ -1,7 +1,7 @@
 import { Component, inject, Output, EventEmitter, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { AuthService, UserRole } from '../../core/services/auth.service';
+import { AuthService, UserRole } from '../../../../core/services/auth.service';
 
 @Component({
     selector: 'app-sidebar',

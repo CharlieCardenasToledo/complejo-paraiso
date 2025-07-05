@@ -1,0 +1,500 @@
+<div class="container mx-auto p-2 sm:p-4">
+    <!-- Header Section -->
+    <div class="mb-4 sm:mb-6">
+        <h1 class="text-xl sm:text-2xl font-bold text-gray-800 mb-1 sm:mb-2">Caja Registradora</h1>
+        @if (loading()) {
+        <p class="text-sm text-gray-600">Cargando información de caja...</p>
+        }
+    </div>
+
+    <!-- Main Content (only shown when not loading) -->
+    @if (!loading()) {
+    <!-- Expander para apertura de caja (solo visible cuando no hay caja abierta) -->
+    @if (!isRegisterOpen()) {
+    <div class="bg-white rounded-lg shadow mb-4 sm:mb-6">
+        <!-- Expander para apertura de caja (solo visible cuando no hay caja abierta) -->
+        <!-- Expander Header -->
+        <div class="p-3 sm:p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50"
+            (click)="toggleOpenForm()">
+            <h2 class="text-lg sm:text-xl font-semibold text-teal-600 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                        clip-rule="evenodd" />
+                </svg>
+                Abrir Nueva Caja
+            </h2>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform transition-transform duration-200"
+                [class.rotate-180]="showOpenForm()" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clip-rule="evenodd" />
+            </svg>
+        </div>
+
+        <!-- Expander Content -->
+        @if (showOpenForm()) {
+        <div class="p-3 sm:p-6 border-t">
+            <form [formGroup]="openForm" (ngSubmit)="openCashRegister()">
+                <!-- Denomination Details Section -->
+                <div class="mb-4 sm:mb-6">
+                    <h3 class="text-base sm:text-lg font-medium text-gray-700 mb-2">Arqueo Inicial de Caja</h3>
+                    <p class="text-xs sm:text-sm text-gray-500 mb-3">Ingresa la cantidad de cada denominación para el
+                        monto inicial</p>
+
+                    <!-- Denomination Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
+                        @for (denom of denominaciones; track $index) {
+                        <div class="border p-2 sm:p-3 rounded shadow-sm hover:shadow-md transition-all">
+                            <div class="flex justify-between items-center mb-1 sm:mb-2">
+                                <span class="text-sm font-medium">{{denom.etiqueta}}</span>
+                                <span class="text-xs text-gray-500">{{denom.tipo === 'bill' ? 'Billete' :
+                                    'Moneda'}}</span>
+                            </div>
+                            <div class="flex items-center">
+                                <button type="button"
+                                    class="w-8 h-8 bg-gray-200 rounded-l flex items-center justify-center qty-control hover:bg-gray-300 active:bg-gray-400"
+                                    (click)="updateDenominationDetail($index, detallesApertura[$index].count - 1)">
+                                    -
+                                </button>
+                                <input type="number"
+                                    class="w-12 sm:w-16 h-8 border text-center text-sm denomination-input focus:ring-2 focus:ring-teal-300 focus:border-teal-500 transition-all"
+                                    [value]="detallesApertura[$index].count"
+                                    (input)="updateDenominationDetail($index, $any($event.target).value)">
+                                <button type="button"
+                                    class="w-8 h-8 bg-gray-200 rounded-r flex items-center justify-center qty-control hover:bg-gray-300 active:bg-gray-400"
+                                    (click)="updateDenominationDetail($index, detallesApertura[$index].count + 1)">
+                                    +
+                                </button>
+                                <span class="ml-2 sm:ml-4 text-sm amount">$ {{detallesApertura[$index].subtotal |
+                                    number:'1.2-2'}}</span>
+                            </div>
+                        </div>
+                        }
+                    </div>
+
+                    <!-- Total Display -->
+                    <div class="mt-3 sm:mt-4 p-3 bg-gray-50 rounded-lg shadow-inner">
+                        <div class="flex justify-between items-center">
+                            <span class="font-semibold text-sm sm:text-base">Total Inicial:</span>
+                            <span class="text-lg sm:text-xl font-bold text-teal-600 amount">$ {{totalApertura |
+                                number:'1.2-2'}}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes Section -->
+                <div class="mb-4 sm:mb-6">
+                    <label for="notes" class="block mb-1 sm:mb-2 text-xs sm:text-sm font-medium text-gray-700">Notas
+                        (opcional)</label>
+                    <textarea id="notes" formControlName="notes" rows="2"
+                        class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-teal-300 focus:border-teal-500"
+                        placeholder="Agregar notas o comentarios sobre la apertura de caja"></textarea>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex justify-center sm:justify-end">
+                    <button type="submit"
+                        class="w-full sm:w-auto px-4 sm:px-6 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 active:bg-teal-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm sm:text-base transition-all shadow hover:shadow-md"
+                        [disabled]="openForm.invalid || totalApertura <= 0 || !validateAllDenominations()">
+                        <span class="flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Abrir Caja
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+        }
+    </div>
+    }
+
+    <!-- Open Register View (cuando la caja está abierta) -->
+    @if (isRegisterOpen()) {
+    <div class="bg-white rounded-lg shadow p-3 sm:p-6 mb-4 sm:mb-6">
+        <!-- Register Status Header -->
+        <div class="flex justify-between items-center mb-3 sm:mb-4">
+            <h2 class="text-lg sm:text-xl font-semibold text-teal-600">Caja Abierta</h2>
+            <span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">Activa</span>
+        </div>
+
+        <!-- Register Summary Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4 mb-4">
+            <div class="bg-gray-50 p-3 rounded-lg shadow-sm hover:shadow transition-all">
+                <p class="text-xs sm:text-sm text-gray-500">Monto Inicial</p>
+                <p class="text-lg sm:text-xl font-semibold">$ {{currentRegister()?.initialAmount | number:'1.2-2'}}</p>
+            </div>
+            <div class="bg-gray-50 p-3 rounded-lg shadow-sm hover:shadow transition-all">
+                <p class="text-xs sm:text-sm text-gray-500">Monto Actual</p>
+                <p class="text-lg sm:text-xl font-semibold">$ {{currentRegister()?.currentAmount | number:'1.2-2'}}</p>
+            </div>
+            <div class="bg-gray-50 p-3 rounded-lg shadow-sm hover:shadow transition-all">
+                <p class="text-xs sm:text-sm text-gray-500">Transacciones</p>
+                <p class="text-lg sm:text-xl font-semibold">{{currentRegister()?.transactions?.length || 0}}</p>
+            </div>
+        </div>
+
+        <!-- Quick Transaction Form -->
+        <div class="mb-4 sm:mb-6 border rounded-lg p-3 sm:p-4 hover:shadow-md transition-all">
+            <h3 class="text-base sm:text-lg font-medium text-gray-700 mb-2 sm:mb-3 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-teal-500" viewBox="0 0 20 20"
+                    fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
+                        clip-rule="evenodd" />
+                </svg>
+                Registrar Transacción
+            </h3>
+
+            <form [formGroup]="transactionForm" (ngSubmit)="registerTransaction()">
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+                    <div>
+                        <label class="block text-xs sm:text-sm font-medium mb-1 text-gray-700">Tipo</label>
+                        <select formControlName="type"
+                            class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-teal-300 focus:border-teal-500 transition-all">
+                            <option value="income">Ingreso</option>
+                            <option value="expense">Gasto</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs sm:text-sm font-medium mb-1 text-gray-700">Monto ($)</label>
+                        <input type="number" formControlName="amount"
+                            class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-teal-300 focus:border-teal-500 transition-all"
+                            min="0" step="0.01">
+                        @if (transactionForm.get('amount')?.invalid && transactionForm.get('amount')?.touched) {
+                        <p class="text-xs text-red-500 mt-1">Ingrese un monto válido</p>
+                        }
+                    </div>
+
+                    <div>
+                        <label class="block text-xs sm:text-sm font-medium mb-1 text-gray-700">Descripción</label>
+                        <input type="text" formControlName="description"
+                            class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-teal-300 focus:border-teal-500 transition-all"
+                            placeholder="Motivo">
+                        @if (transactionForm.get('description')?.invalid && transactionForm.get('description')?.touched)
+                        {
+                        <p class="text-xs text-red-500 mt-1">Descripción requerida</p>
+                        }
+                    </div>
+                </div>
+
+                <div class="mt-3 flex justify-end">
+                    <button type="submit"
+                        class="px-4 py-2 bg-teal-500 text-white text-sm rounded-lg hover:bg-teal-600 active:bg-teal-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm sm:text-base transition-all shadow hover:shadow-md"
+                        [disabled]="transactionForm.invalid">
+                        <span class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Registrar
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+            <button type="button" (click)="showTransactionDialog()"
+                class="px-3 py-2 text-sm bg-teal-500 text-white rounded-lg hover:bg-teal-600 active:bg-teal-700 transition shadow hover:shadow-md flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                    <path fill-rule="evenodd"
+                        d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                        clip-rule="evenodd" />
+                </svg>
+                <span>Operaciones</span>
+            </button>
+            <button type="button" (click)="showTransactions()"
+                class="px-3 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 active:bg-blue-700 transition shadow hover:shadow-md flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+                        clip-rule="evenodd" />
+                </svg>
+                <span>Transacciones</span>
+            </button>
+            <button type="button" (click)="showSummary()"
+                class="px-3 py-2 text-sm bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 active:bg-indigo-700 transition shadow hover:shadow-md flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z" />
+                    <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z" />
+                </svg>
+                <span>Resumen</span>
+            </button>
+            <button type="button" (click)="loadHistoryData()"
+                class="px-3 py-2 text-sm bg-purple-500 text-white rounded-lg hover:bg-purple-600 active:bg-purple-700 transition shadow hover:shadow-md flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                        clip-rule="evenodd" />
+                </svg>
+                <span>Historial</span>
+            </button>
+            <button type="button" (click)="syncOrdersWithCashRegister()"
+                class="px-3 py-2 text-sm bg-amber-500 text-white rounded-lg hover:bg-amber-600 active:bg-amber-700 transition shadow hover:shadow-md flex items-center justify-center"
+                [disabled]="isSyncing()">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                        clip-rule="evenodd" />
+                </svg>
+                @if (isSyncing()) {
+                <span>Sincronizando...</span>
+                } @else {
+                <span>Sincronizar</span>
+                }
+            </button>
+            <button type="button" (click)="closeCashRegister()"
+                class="px-3 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 active:bg-red-700 transition shadow hover:shadow-md flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                        clip-rule="evenodd" />
+                </svg>
+                <span>Cerrar</span>
+            </button>
+        </div>
+    </div>
+    }
+
+    <!-- Historial de Cajas - Completamente actualizado con signals y control flow -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold">Historial de Cajas</h2>
+            @if (loadingHistory()) {
+            <div class="flex items-center text-gray-500">
+                <svg class="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
+                <span class="text-sm">Cargando...</span>
+            </div>
+            }
+        </div>
+
+        <!-- Vista de detalles de registro específico -->
+        @if (selectedRegister()) {
+        <div class="mb-6">
+            <div class="flex items-center mb-4">
+                <button (click)="backToHistoryList()"
+                    class="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600 flex items-center mr-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20"
+                        fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    Volver
+                </button>
+                <h3 class="text-lg font-semibold">Detalles del Cierre de Caja</h3>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Información General -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="font-medium mb-3">Información General</h4>
+                    <div class="space-y-2 text-sm">
+                        <p><strong>Fecha de Apertura:</strong> {{ getFormattedDateTime(selectedRegister()!.openedAt) }}
+                        </p>
+                        <p><strong>Abierta por:</strong> {{ selectedRegister()!.openedBy.name }}</p>
+                        @if (selectedRegister()!.status === 'closed') {
+                        <p><strong>Fecha de Cierre:</strong> {{ getFormattedDateTime(selectedRegister()!.closedAt) }}
+                        </p>
+                        <p><strong>Cerrada por:</strong> {{ selectedRegister()!.closedBy?.name }}</p>
+                        }
+                        <p><strong>Estado:</strong>
+                            <span [class]="selectedRegister()!.status === 'open' ? 'text-green-600' : 'text-gray-600'">
+                                {{ selectedRegister()!.status === 'open' ? 'Abierta' : 'Cerrada' }}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Resumen Financiero -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="font-medium mb-3">Resumen Financiero</h4>
+                    <div class="space-y-2 text-sm">
+                        <p><strong>Monto Inicial:</strong> ${{ formatAmount(selectedRegister()!.initialAmount) }}</p>
+                        <p><strong>Monto Final:</strong> ${{ formatAmount(selectedRegister()!.finalAmount ||
+                            selectedRegister()!.currentAmount) }}</p>
+                        @if (selectedRegister()!.status === 'closed' && selectedRegister()!.difference !== undefined) {
+                        <p><strong>Diferencia:</strong>
+                            <span [class]="selectedRegister()!.difference! >= 0 ? 'text-green-600' : 'text-red-600'">
+                                ${{ formatAmount(selectedRegister()!.difference!) }}
+                            </span>
+                        </p>
+                        }
+                    </div>
+                </div>
+
+                <!-- Estadísticas de Transacciones -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="font-medium mb-3">Transacciones</h4>
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                            <p class="text-gray-600">Pagos</p>
+                            <p class="font-medium text-green-600">${{ formatAmount(registerStats().payments) }}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600">Ingresos</p>
+                            <p class="font-medium text-green-600">${{ formatAmount(registerStats().incomes) }}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600">Gastos</p>
+                            <p class="font-medium text-red-600">${{ formatAmount(registerStats().expenses) }}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600">Reembolsos</p>
+                            <p class="font-medium text-orange-600">${{ formatAmount(registerStats().refunds) }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Métodos de Pago -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="font-medium mb-3">Métodos de Pago</h4>
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                            <p class="text-gray-600">Efectivo</p>
+                            <p class="font-medium">${{ formatAmount(registerStats().paymentMethods.efectivo) }}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600">Transferencia</p>
+                            <p class="font-medium">${{ formatAmount(registerStats().paymentMethods.transferencia) }}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600">Ahorita</p>
+                            <p class="font-medium">${{ formatAmount(registerStats().paymentMethods.ahorita) }}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600">De Una</p>
+                            <p class="font-medium">${{ formatAmount(registerStats().paymentMethods.deUna) }}</p>
+                        </div>
+                        @if (registerStats().paymentMethods.otros > 0) {
+                        <div>
+                            <p class="text-gray-600">Otros</p>
+                            <p class="font-medium">${{ formatAmount(registerStats().paymentMethods.otros) }}</p>
+                        </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+        } @else {
+        <!-- Lista de Cajas Abiertas -->
+        @if (openRegisters().length > 0) {
+        <div class="mb-6">
+            <h3 class="text-lg font-semibold mb-2 flex items-center">
+                <span class="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                Cajas Abiertas
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                @for (register of openRegisters(); track register.id) {
+                <div class="border border-green-200 p-4 rounded-lg bg-green-50 hover:shadow-md transition-all">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-medium text-green-800">Caja #{{ register.id?.slice(-6) }}</h4>
+                        <span class="px-2 py-1 text-xs bg-green-200 text-green-800 rounded-full">Abierta</span>
+                    </div>
+                    <div class="space-y-1 text-sm">
+                        <p><strong>Abierta por:</strong> {{ register.openedBy.name }}</p>
+                        <p><strong>Fecha:</strong> {{ getFormattedDateTime(register.openedAt) }}</p>
+                        <p><strong>Monto Inicial:</strong> ${{ formatAmount(register.initialAmount) }}</p>
+                        <p><strong>Monto Actual:</strong> ${{ formatAmount(register.currentAmount) }}</p>
+                        <p><strong>Transacciones:</strong> {{ register.transactions.length || 0 }}</p>
+                    </div>
+                    <button (click)="viewRegisterDetails(register.id!)"
+                        class="mt-3 w-full bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 transition-colors text-sm">
+                        Ver Detalles
+                    </button>
+                </div>
+                }
+            </div>
+        </div>
+        }
+
+        <!-- Lista de Cajas Cerradas -->
+        @if (closedRegisters().length > 0) {
+        <div>
+            <h3 class="text-lg font-semibold mb-2 flex items-center">
+                <span class="w-3 h-3 bg-gray-500 rounded-full mr-2"></span>
+                Cajas Cerradas
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                @for (register of closedRegisters(); track register.id) {
+                <div class="border border-gray-200 p-4 rounded-lg bg-gray-50 hover:shadow-md transition-all">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-medium text-gray-800">Caja #{{ register.id?.slice(-6) }}</h4>
+                        <span class="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded-full">Cerrada</span>
+                    </div>
+                    <div class="space-y-1 text-sm">
+                        <p><strong>Fecha:</strong> {{ getFormattedDate(register.openedAt) }}</p>
+                        <p><strong>Abierta por:</strong> {{ register.openedBy.name }}</p>
+                        @if (register.closedBy) {
+                        <p><strong>Cerrada por:</strong> {{ register.closedBy.name }}</p>
+                        }
+                        <p><strong>Monto Final:</strong> ${{ formatAmount(register.finalAmount || 0) }}</p>
+                        @if (register.difference !== undefined) {
+                        <p><strong>Diferencia:</strong>
+                            <span [class]="register.difference >= 0 ? 'text-green-600' : 'text-red-600'">
+                                ${{ formatAmount(register.difference) }}
+                            </span>
+                        </p>
+                        }
+                    </div>
+                    <button (click)="viewRegisterDetails(register.id!)"
+                        class="mt-3 w-full bg-gray-600 text-white px-3 py-2 rounded hover:bg-gray-700 transition-colors text-sm">
+                        Ver Detalles
+                    </button>
+                </div>
+                }
+            </div>
+        </div>
+        }
+
+        <!-- Estado vacío cuando no hay registros -->
+        @if (!loadingHistory() && openRegisters().length === 0 && closedRegisters().length === 0) {
+        <div class="text-center text-gray-500 py-8">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-4 text-gray-300" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+            <p class="text-lg font-medium mb-2">No hay registros de caja</p>
+            <p class="text-sm">Los registros de apertura y cierre de cajas aparecerán aquí.</p>
+        </div>
+        }
+        }
+    </div>
+    }
+
+    <!-- Loading Overlay -->
+    @if (loading()) {
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg">
+            <div class="flex items-center">
+                <svg class="animate-spin h-5 w-5 sm:h-6 sm:w-6 text-teal-600 mr-3" xmlns="http://www.w3.org/2000/svg"
+                    fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
+                <span class="text-gray-700">Procesando...</span>
+            </div>
+        </div>
+    </div>
+    }
+</div>

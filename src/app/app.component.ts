@@ -1,10 +1,10 @@
 import { Component, OnInit, HostListener, inject, effect } from '@angular/core';
 import { RouterOutlet, Router, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { filter, map, mergeMap } from 'rxjs/operators';
-import { AuthService } from './services/auth.service';
 import { CommonModule } from '@angular/common';
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { Title } from '@angular/platform-browser';
+import { AuthService } from './core/services/auth.service';
 
 @Component({
     selector: 'app-root',

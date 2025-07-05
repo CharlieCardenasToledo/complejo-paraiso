@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
 import { filter, take } from 'rxjs/operators';
+import { AuthService } from '../../../services/auth.service';
 
 
 @Component({

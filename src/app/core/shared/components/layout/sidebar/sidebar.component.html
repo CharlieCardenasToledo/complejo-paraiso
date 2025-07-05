@@ -1,0 +1,211 @@
+<!-- Sidebar optimizado para tablet y claridad visual -->
+<div class="h-full bg-white shadow-lg flex flex-col w-72 z-30">
+
+    <!-- Header del Sidebar -->
+    <div class="p-4 border-b flex items-center justify-between">
+        <span class="text-2xl font-bold text-teal-600">Complejo Paraíso</span>
+        <button (click)="toggleSidebar.emit()"
+            class="text-gray-600 hover:text-teal-600 p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+
+    <!-- Navegación Principal -->
+    <div class="flex-1 overflow-y-auto py-3">
+        <nav class="px-3 space-y-1">
+            <!-- Dashboard -->
+            @if (canAccessDashboard()) {
+            <a routerLink="/home" routerLinkActive="bg-teal-100 text-teal-700" [routerLinkActiveOptions]="{exact: true}"
+                (click)="closeSidebar()"
+                class="group flex items-center px-3 py-3 text-base font-medium rounded-lg hover:bg-teal-50 hover:text-teal-700 transition-all">
+                <svg class="mr-3 h-6 w-6 text-gray-500 group-hover:text-teal-600" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <span>Dashboard</span>
+            </a>
+            }
+
+            <!-- Pedidos -->
+            @if (canAccessOrders()) {
+            <a routerLink="/pedido" routerLinkActive="bg-teal-100 text-teal-700" (click)="closeSidebar()"
+                class="group flex items-center px-3 py-3 text-base font-medium rounded-lg hover:bg-teal-50 hover:text-teal-700 transition-all">
+                <svg class="mr-3 h-6 w-6 text-gray-500 group-hover:text-teal-600" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+                <span>Pedidos</span>
+            </a>
+            }
+
+            <!-- Cocina -->
+            @if (canAccessKitchen()) {
+            <a routerLink="/cocina" routerLinkActive="bg-teal-100 text-teal-700" (click)="closeSidebar()"
+                class="group flex items-center px-3 py-3 text-base font-medium rounded-lg hover:bg-teal-50 hover:text-teal-700 transition-all">
+                <svg class="mr-3 h-6 w-6 text-gray-500 group-hover:text-teal-600" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 17h5l-1.4-1.4a2 2 0 01-1.4-1.4V11a6 6 0 00-4-5.6V5a2 2 0 10-4 0v.4A6 6 0 006 11v3.2a2 2 0 01-1.4 1.4L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                <span>Cocina</span>
+            </a>
+            }
+
+            <!-- Tienda -->
+            @if (canAccessPayments()) {
+            <a routerLink="/tienda" routerLinkActive="bg-teal-100 text-teal-700" (click)="closeSidebar()"
+                class="group flex items-center px-3 py-3 text-base font-medium rounded-lg hover:bg-teal-50 hover:text-teal-700 transition-all">
+                <svg class="mr-3 h-6 w-6 text-gray-500 group-hover:text-teal-600" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                <span>Tienda</span>
+            </a>
+            }
+
+            <!-- Cobrar -->
+            @if (canAccessPayments()) {
+            <a routerLink="/cobrar" routerLinkActive="bg-teal-100 text-teal-700" (click)="closeSidebar()"
+                class="group flex items-center px-3 py-3 text-base font-medium rounded-lg hover:bg-teal-50 hover:text-teal-700 transition-all">
+                <svg class="mr-3 h-6 w-6 text-gray-500 group-hover:text-teal-600" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <span>Cobrar</span>
+            </a>
+            }
+        </nav>
+
+        <!-- Sección de Administración -->
+        @if (isAdmin()) {
+        <div class="mt-4 pt-4 border-t border-gray-200">
+            <h3 class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Administración
+            </h3>
+            <nav class="px-3 space-y-1">
+                <!-- Panel de Admin -->
+                <a routerLink="/admin" routerLinkActive="bg-teal-100 text-teal-700" (click)="closeSidebar()"
+                    class="group flex items-center px-3 py-3 text-base font-medium rounded-lg hover:bg-teal-50 hover:text-teal-700 transition-all">
+                    <svg class="mr-3 h-6 w-6 text-gray-500 group-hover:text-teal-600" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span>Panel Admin</span>
+                </a>
+
+                <!-- Gestión de Caja -->
+                <a routerLink="admin/caja" routerLinkActive="bg-teal-100 text-teal-700" (click)="closeSidebar()"
+                    class="group flex items-center px-3 py-3 text-base font-medium rounded-lg hover:bg-teal-50 hover:text-teal-700 transition-all">
+                    <svg class="mr-3 h-6 w-6 text-gray-500 group-hover:text-teal-600" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.973 0-1.828-.52-2.236-1.354L5.4 10H4a2 2 0 01-2-2V6a2 2 0 012-2h16a2 2 0 012 2v2a2 2 0 01-2 2h-1.382l-1.94-4.861A2 2 0 0016.121 4H7.879a2 2 0 00-1.942 1.139L4 10v2h1.4l2.354-5.885A2 2 0 0110.017 5h4.017a2 2 0 011.789 1.106L14 10z" />
+                    </svg>
+                    <span>Caja</span>
+                </a>
+
+                <!-- Gestión de Usuarios -->
+                <a routerLink="/users" routerLinkActive="bg-teal-100 text-teal-700" (click)="closeSidebar()"
+                    class="group flex items-center px-3 py-3 text-base font-medium rounded-lg hover:bg-teal-50 hover:text-teal-700 transition-all">
+                    <svg class="mr-3 h-6 w-6 text-gray-500 group-hover:text-teal-600" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <span>Usuarios</span>
+                </a>
+
+                <!-- Gestión de Categorías -->
+                <a routerLink="/admin/categorias" routerLinkActive="bg-teal-100 text-teal-700" (click)="closeSidebar()"
+                    class="group flex items-center px-3 py-3 text-base font-medium rounded-lg hover:bg-teal-50 hover:text-teal-700 transition-all">
+                    <svg class="mr-3 h-6 w-6 text-gray-500 group-hover:text-teal-600" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    <span>Categorías</span>
+                </a>
+
+                <!-- Gestión de Productos -->
+                <a routerLink="/admin/productos" routerLinkActive="bg-teal-100 text-teal-700" (click)="closeSidebar()"
+                    class="group flex items-center px-3 py-3 text-base font-medium rounded-lg hover:bg-teal-50 hover:text-teal-700 transition-all">
+                    <svg class="mr-3 h-6 w-6 text-gray-500 group-hover:text-teal-600" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
+                    </svg>
+                    <span>Productos</span>
+                </a>
+
+                <!-- Gestión de Inventario -->
+                <a routerLink="/admin/inventario" routerLinkActive="bg-teal-100 text-teal-700" (click)="closeSidebar()"
+                    class="group flex items-center px-3 py-3 text-base font-medium rounded-lg hover:bg-teal-50 hover:text-teal-700 transition-all">
+                    <svg class="mr-3 h-6 w-6 text-gray-500 group-hover:text-teal-600" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                    </svg>
+                    <span>Inventario</span>
+                </a>
+
+                <!-- Reportes -->
+                <a routerLink="/admin/reportes" routerLinkActive="bg-teal-100 text-teal-700" (click)="closeSidebar()"
+                    class="group flex items-center px-3 py-3 text-base font-medium rounded-lg hover:bg-teal-50 hover:text-teal-700 transition-all">
+                    <svg class="mr-3 h-6 w-6 text-gray-500 group-hover:text-teal-600" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    <span>Reportes</span>
+                </a>
+            </nav>
+        </div>
+        }
+    </div>
+
+    <!-- Perfil de Usuario -->
+    @if (userData(); as userData) {
+    <div class="border-t border-gray-200 p-4">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <div
+                    class="h-12 w-12 rounded-full bg-teal-500 flex items-center justify-center text-white font-bold text-lg">
+                    {{ userData.name?.charAt(0) || userData.displayName?.charAt(0) || 'U' }}
+                </div>
+            </div>
+            <div class="ml-3 flex-1 min-w-0">
+                <p class="text-base font-semibold text-gray-800 truncate">{{ userData.name || userData.displayName }}
+                </p>
+                <p class="mt-1">
+                    <span class="px-2.5 py-1 text-xs font-medium rounded-full" [ngClass]="{
+                        'bg-blue-100 text-blue-800': userData.role === 'admin',
+                        'bg-green-100 text-green-800': userData.role === 'mesero',
+                        'bg-yellow-100 text-yellow-800': userData.role === 'cocinero',
+                        'bg-purple-100 text-purple-800': userData.role === 'cobrador'
+                    }">
+                        {{ getRoleLabel(userData.role) }}
+                    </span>
+                </p>
+            </div>
+            <button (click)="logout()"
+                class="ml-2 p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-red-500">
+                <svg class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1H3zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z"
+                        clip-rule="evenodd" />
+                </svg>
+            </button>
+        </div>
+    </div>
+    }
+</div>
